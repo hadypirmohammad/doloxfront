@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>پرداخت ناموفق | Dolox.ir</title>
+
+    <meta name="robots" content="noindex,nofollow">
+
+    <noscript>
+        <meta http-equiv="refresh" content="5;url=https://dolox.ir/dashboard">
+    </noscript>
+
+    <style>
+        :root {
+            --primary: #FA4505;
+            --secondary: #BC1526;
+            --accent: #222732;
+            --base200: #EFF3FA;
+            --content: #8B7676;
+            --error: #ff6f6f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Tahoma,"Segoe UI",-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+            line-height:1.9;
+            letter-spacing:0.2px;
+            font-family: tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--base200), #ffffff);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .card {
+            background: #fff;
+            width: 380px;
+            max-width: 90%;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, .08);
+            text-align: center;
+            animation: fade .6s ease;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .icon {
+            font-size: 70px;
+            margin-bottom: 10px;
+            animation: shake 1.2s infinite;
+        }
+
+        h1 {
+            font-size: 26px;
+            color: var(--error);
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.9;
+            color: var(--content);
+        }
+
+        .timer {
+            margin-top: 18px;
+            font-size: 18px;
+        }
+
+        .timer span {
+            color: var(--secondary);
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .progress {
+            height: 7px;
+            background: #eee;
+            border-radius: 10px;
+            margin-top: 25px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--error), var(--secondary));
+            transition: width 1s linear;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: .25s;
+        }
+
+        .btn:hover {
+            background: var(--secondary);
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-6px)
+            }
+
+            50% {
+                transform: translateX(6px)
+            }
+
+            75% {
+                transform: translateX(-6px)
+            }
+
+            100% {
+                transform: translateX(0)
+            }
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: scale(.9)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card" role="alert" aria-live="polite">
+
+        <div class="logo">Dolox.ir</div>
+
+        <div class="icon">❌💳</div>
+
+        <h1>پرداخت ناموفق بود</h1>
+
+        <p>
+            پرداخت انجام نشد.<br>
+            لطفاً دوباره تلاش کنید.
+        </p>
+
+        <div class="timer">
+            بازگشت تا <span id="sec">5</span> ثانیه دیگر 🔁
+        </div>
+
+        <div class="progress">
+            <div class="bar" id="bar"></div>
+        </div>
+
+        <a class="btn" href="https://dolox.ir/dashboard">
+            بازگشت به داشبورد
+        </a>
+
+    </div>
+
+    <script>
+
+        const redirectURL = "https://dolox.ir/dashboard";
+        const duration = 5;
+
+        let time = duration;
+        const sec = document.getElementById("sec");
+        const bar = document.getElementById("bar");
+
+        const timer = setInterval(() => {
+
+            time--;
+
+            sec.textContent = time;
+            bar.style.width = (time / duration * 100) + "%";
+
+            if (time <= 0) {
+                clearInterval(timer);
+                window.location.href = redirectURL;
+            }
+
+        }, 1000);
+
+    </script>
+
+</body>
+
+</html>

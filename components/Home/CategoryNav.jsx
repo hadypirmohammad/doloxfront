@@ -1,0 +1,80 @@
+import Image from 'next/image';
+import Link from 'next/link';
+
+export const PASSENGER_HEAD_BRAND_ID = 5;
+export const VANET_CATEGORY_ID = 'vanet';
+export const VANET_KEYWORD = 'وانت';
+
+export const VEHICLE_CATEGORIES = [
+  {
+    id: 5,
+    name: 'سواری',
+    image: '/media/images/savari.png',
+    width: 145,
+    height: 50,
+    imageClass: 'h-8 w-auto object-contain sm:h-12',
+  },
+  {
+    id: 7,
+    name: 'سنگین',
+    image: '/media/images/kamion.png',
+    width: 143,
+    height: 66,
+    imageClass: 'h-8 w-auto object-contain sm:h-12',
+  },
+  {
+    id: 6,
+    name: 'موتور سیکلت',
+    image: '/media/images/motorcycle.png',
+    width: 104,
+    height: 63,
+    imageClass: 'h-8 w-auto object-contain sm:h-12',
+  },
+];
+
+export const HOME_CATEGORIES = [
+  ...VEHICLE_CATEGORIES,
+  {
+    id: VANET_CATEGORY_ID,
+    name: 'وانت',
+    image: '/media/images/vanet.png',
+    width: 123,
+    height: 54,
+    imageClass: 'h-8 w-auto object-contain sm:h-12',
+  },
+];
+
+export const getCategoryQuery = (categoryId) =>
+  categoryId === VANET_CATEGORY_ID
+    ? { headBrandId: PASSENGER_HEAD_BRAND_ID, type: VANET_CATEGORY_ID }
+    : { headBrandId: categoryId };
+
+const CategoryNav = () => {
+  return (
+    <section className="bg-[#FAFAFA] px-3 pt-4 sm:px-4 sm:pt-5">
+      <div className="mx-auto grid max-w-screen-xl grid-cols-4 gap-2 sm:gap-4">
+        {HOME_CATEGORIES.map((cat) => (
+          <Link
+            key={cat.id}
+            href={{ pathname: '/ads', query: getCategoryQuery(cat.id) }}
+            className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#F0F0F0] bg-white px-1 py-3 shadow-[0_6px_18px_rgba(36,59,83,0.05)] transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_10px_24px_rgba(255,94,0,0.12)] sm:gap-3 sm:px-4 sm:py-4"
+          >
+            <Image
+              src={cat.image}
+              alt={cat.name}
+              width={cat.width}
+              height={cat.height}
+              unoptimized
+              className={cat.imageClass}
+            />
+            <span className="whitespace-nowrap text-center text-[11px] font-bold text-secondary sm:text-[14px]">
+              {cat.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default CategoryNav;

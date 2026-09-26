@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>بازیابی رمز | Dolox.ir</title>
+
+    <style>
+        :root {
+            --primary: #FA4505;
+            --secondary: #BC1526;
+            --accent: #222732;
+            --base200: #EFF3FA;
+            --content: #8B7676;
+            --success: #87d039;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, var(--base200), #ffffff);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .card {
+            width: 380px;
+            padding: 40px 30px;
+            background: #fff;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            animation: fade .6s ease;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 900;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--content);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            text-align: right;
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: var(--primary);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: .25s;
+        }
+
+        .btn:hover {
+            background: var(--secondary);
+        }
+
+        /* OTP BOXES */
+        .otp-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .otp-container input {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 22px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .back-link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: scale(.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="logo">Dolox.ir</div>
+
+        <!-- STEP 1: Enter Email -->
+        <div id="step1">
+
+            <h1>بازیابی رمز عبور</h1>
+            <p>ایمیل یا شماره موبایل خود را وارد کنید.</p>
+
+            <div class="input-group">
+                <label>ایمیل یا شماره موبایل</label>
+                <input id="userInput" type="text" placeholder="example@gmail.com">
+            </div>
+
+            <button class="btn" onclick="goToStep2()">
+                ارسال کد تأیید
+            </button>
+
+            <div class="back-link">
+                بازگشت به
+                <a href="login.html">ورود</a>
+            </div>
+
+        </div>
+
+        <!-- STEP 2: Enter OTP -->
+        <div id="step2" class="hidden">
+
+            <h1>تأیید کد</h1>
+            <p>کد ۶ رقمی ارسال شده را وارد کنید.</p>
+
+            <div dir="ltr" class="otp-container">
+                <input maxlength="1" oninput="moveNext(this)">
+                <input maxlength="1" oninput="moveNext(this)">
+                <input maxlength="1" oninput="moveNext(this)">
+                <input maxlength="1" oninput="moveNext(this)">
+                <input maxlength="1" oninput="moveNext(this)">
+                <input maxlength="1" oninput="moveNext(this)">
+            </div>
+
+            <button class="btn">
+                تایید کد و ادامه
+            </button>
+
+            <div class="back-link">
+                <a href="#" onclick="backToStep1()">بازگشت</a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function goToStep2() {
+            document.getElementById("step1").classList.add("hidden");
+            document.getElementById("step2").classList.remove("hidden");
+        }
+
+        function backToStep1() {
+            document.getElementById("step2").classList.add("hidden");
+            document.getElementById("step1").classList.remove("hidden");
+        }
+
+        function moveNext(el) {
+            if (el.value.length === 1) {
+                let next = el.nextElementSibling;
+                if (next) next.focus();
+            }
+        }
+    </script>
+
+</body>
+
+</html>

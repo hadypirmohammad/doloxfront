@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ورود | Dolox.ir</title>
+
+    <style>
+        :root {
+            --primary: #FA4505;
+            --secondary: #BC1526;
+            --accent: #222732;
+            --base200: #EFF3FA;
+            --content: #8B7676;
+            --success: #87d039;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, var(--base200), #ffffff);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .card {
+            width: 380px;
+            padding: 40px 30px;
+            background: #fff;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            animation: fade .6s ease;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 900;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--content);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            text-align: right;
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--accent);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: var(--primary);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: .25s;
+        }
+
+        .btn:hover {
+            background: var(--secondary);
+        }
+
+        .link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: scale(.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="logo">Dolox.ir</div>
+
+        <h1>ورود</h1>
+
+        <p>برای ورود به حساب کاربری، اطلاعات زیر را وارد کنید.</p>
+
+        <form action="#" method="POST">
+
+            <div class="input-group">
+                <label>ایمیل یا شماره موبایل</label>
+                <input type="text" placeholder="example@gmail.com">
+            </div>
+
+            <div class="input-group">
+                <label>رمز عبور</label>
+                <input type="password" placeholder="******">
+            </div>
+
+            <a href="dashboard.html" class="btn">ورود به حساب</a>
+
+        </form>
+
+        <div class="link">
+            رمز را فراموش کرده‌اید؟
+            <a href="forget.html">بازیابی رمز عبور</a>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
