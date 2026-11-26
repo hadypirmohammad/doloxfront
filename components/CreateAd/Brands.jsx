@@ -1,11 +1,13 @@
-import { getBrands } from '@/utils/Request';
+import { getBrands, getModelsByBrand } from '@/utils/Request';
 import { resolveBackendMediaUrl } from '@/utils/media';
 import { normalizeSearchTerm } from '@/utils/Cal';
 import Image from 'next/image';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 const BRAND_IMAGE_FALLBACK = '/media/images/samplebrand.png';
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 18;
+const MODEL_SEARCH_MIN = 2;
+const MODEL_SEARCH_CONCURRENCY = 8;
 
 const normalizeName = (value) => normalizeSearchTerm(value).replace(/ /g, '').toLowerCase();
 
@@ -33,7 +35,10 @@ const Brands = ({ brands = [], brandsByCategory = {}, setBrand, setStep, step, c
   const [failedCategoryId, setFailedCategoryId] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
   const [searchInput, setSearchInput] = useState('');
+  const [modelsByBrand, setModelsByBrand] = useState({});
+  const [searchingModels, setSearchingModels] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const loaderRef = useRef(null);
 
   const categoryId = category?.BrandId;
 
@@ -67,31 +72,83 @@ const Brands = ({ brands = [], brandsByCategory = {}, setBrand, setStep, step, c
     };
   }, [categoryId, retryKey]);
 
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [categoryId, searchInput]);
+  const term = normalizeName(searchInput);
 
-  const visibleBrands = useMemo(() => {
+  const brandMatches = useMemo(() => {
     const list = Array.isArray(brandsData) ? brandsData : [];
-    const term = normalizeName(searchInput);
     if (!term) return list;
     return list.filter((brand) => normalizeName(brand?.Name).includes(term));
-  }, [brandsData, searchInput]);
+  }, [brandsData, term]);
+
+  useEffect(() => {
+    const list = Array.isArray(brandsData) ? brandsData : [];
+    if (term.length < MODEL_SEARCH_MIN || brandMatches.length || !list.length) return;
+
+    let active = true;
+    const pending = list.filter((brand) => !modelsByBrand[brand.BrandId]);
+    if (!pending.length) return;
+
+    setSearchingModels(true);
+    let index = 0;
+    const loadNext = async () => {
+      while (index < pending.length) {
+        const brand = pending[index++];
+        const result = await getModelsByBrand(brand).catch(() => null);
+        if (!active) return;
+        setModelsByBrand((prev) => ({ ...prev, [brand.BrandId]: Array.isArray(result) ? result : [] }));
+      }
+    };
+
+    Promise.all(Array.from({ length: MODEL_SEARCH_CONCURRENCY }, loadNext)).finally(() => {
+      if (active) setSearchingModels(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [term, brandMatches.length, brandsData]);
+
+  const visibleBrands = useMemo(() => {
+    if (!term || brandMatches.length) return brandMatches;
+    const list = Array.isArray(brandsData) ? brandsData : [];
+    return list
+      .map((brand) => {
+        const model = (modelsByBrand[brand.BrandId] || []).find((item) => normalizeName(item?.Name).includes(term));
+        return model ? { ...brand, matchedModel: model.Name } : null;
+      })
+      .filter(Boolean);
+  }, [brandMatches, brandsData, modelsByBrand, term]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [categoryId, term]);
+
+  useEffect(() => {
+    const node = loaderRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) setVisibleCount((count) => count + PAGE_SIZE);
+    }, { rootMargin: '200px' });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [visibleBrands.length, visibleCount, step]);
 
   if (step !== 0) return <></>;
 
   return (
-    <div dir="rtl" className="px-4 pt-5 sm:px-5">
-      <div className="mx-auto flex max-w-xl rounded-[50px] bg-gradient-orange p-1.5 text-white">
+    <div dir="rtl" className="px-3 pt-5 sm:px-5">
+      <div className="mx-auto flex max-w-xl overflow-hidden rounded-[50px] bg-gradient-orange p-1.5 text-white">
         {categories.map((cat, index) => (
           <div
             key={cat.BrandId || index}
-            className={`w-full cursor-pointer rounded-full py-2.5 text-center text-sm font-["vazir-bold"] transition-colors ${
+            className={`min-w-0 flex-1 cursor-pointer truncate rounded-full px-1 py-2.5 text-center text-[12.5px] font-["vazir-bold"] transition-colors sm:text-sm ${
               categoryId === cat.BrandId ? 'bg-white text-secondary' : ''
             }`}
             onClick={() => setCategory(cat)}
           >
-            {cat.Name}
+            {String(cat.Name || '').trim()}
           </div>
         ))}
       </div>
@@ -129,8 +186,12 @@ const Brands = ({ brands = [], brandsByCategory = {}, setBrand, setStep, step, c
         </div>
       )}
 
-      {Array.isArray(brandsData) && visibleBrands.length === 0 && (
-        <p className="py-10 text-center font-['vazir'] text-sm text-[#8A8A8A]">برندی یافت نشد</p>
+      {searchingModels && !visibleBrands.length && (
+        <p className="py-10 text-center font-['vazir'] text-sm text-[#8A8A8A]">در حال جست و جو بین مدل ها...</p>
+      )}
+
+      {Array.isArray(brandsData) && !searchingModels && visibleBrands.length === 0 && (
+        <p className="py-10 text-center font-['vazir'] text-sm text-[#8A8A8A]">موردی یافت نشد</p>
       )}
 
       <div className="mx-auto mt-4 grid max-w-xl grid-cols-3 gap-2.5">
@@ -145,42 +206,18 @@ const Brands = ({ brands = [], brandsByCategory = {}, setBrand, setStep, step, c
           >
             <BrandIcon image={brand.Image} name={brand.Name} />
             <span className="text-center text-[13px] font-semibold text-secondary">{brand.Name}</span>
+            {brand.matchedModel && (
+              <span className="text-center text-[11px] text-primary">{brand.matchedModel}</span>
+            )}
           </div>
         ))}
       </div>
 
       {visibleBrands.length > visibleCount && (
-        <div className="mx-auto mt-4 flex max-w-xl justify-center">
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-2xl border border-[#EAEEF4] bg-white px-9 py-3 text-[13px] font-semibold text-[#42536B]"
-            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-            نمایش بیشتر
-          </button>
+        <div ref={loaderRef} className="flex justify-center py-6">
+          <span className="loading loading-spinner loading-md text-primary" />
         </div>
       )}
-
-      <div className="mx-auto mt-5 flex max-w-xl items-center gap-4 rounded-[22px] border border-[#EAEEF4] bg-[#F7F9FC] p-4">
-        <div className="flex-1">
-          <p className="m-0 text-[15px] font-bold text-secondary">برند مورد نظر شما نیست؟</p>
-          <p className="m-0 pt-1.5 text-[12.5px] leading-[1.9] text-[#7D889A]">
-            اگر برند خودروی شما در لیست نیست، از طریق پشتیبانی ثبتش کنید.
-          </p>
-        </div>
-        <span className="flex h-24 w-24 flex-none items-center justify-center rounded-full bg-gradient-orange">
-          <Image
-            src="/media/images/default-ad.webp"
-            alt="خودرو"
-            width={74}
-            height={74}
-            className="h-[74px] w-[74px] rounded-full object-cover"
-          />
-        </span>
-      </div>
     </div>
   );
 };

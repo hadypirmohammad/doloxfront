@@ -31,35 +31,38 @@ const ComboIcon = () => (
 const PLAN_CARDS = [
   {
     id: 1,
-    matchName: 'رایگان',
     title: 'رایگان',
-    description: 'امتحانش ضرر نداره',
+    description: 'ثبت آگهی بدون هزینه',
+    fallbackPrice: 0,
+    paidTitle: 'ثبت آگهی',
+    paidDescription: 'نمایش آگهی در شهر انتخاب شده',
+    paidFallbackPrice: 19900,
     Icon: FreeIcon,
   },
   {
     id: 2,
-    matchName: 'تمامی شهر ها',
-    title: 'ثبت آگهی در تمام شهرها',
-    description: 'آگهی شما در کل کشور دیده می‌شود',
+    title: 'سراسری',
+    description: 'نمایش آگهی شما در تمام شهرها',
+    fallbackPrice: 39900,
     Icon: CitiesIcon,
   },
   {
     id: 3,
-    matchName: 'ثبت فوری آگهی',
-    title: 'ثبت سفارشی آگهی',
-    description: 'آگهی خود را از دیگر آگهی‌ها متمایز کنید',
+    title: 'سفارشی',
+    description: 'آگهی خود را با نشان ویژه متمایز کنید.',
+    fallbackPrice: 39900,
     Icon: FeaturedIcon,
   },
   {
     id: 4,
-    matchName: 'کلی',
-    title: 'سفارشی در تمام شهرها',
-    description: 'به بهترین حالت ممکن در دولوکس دیده شوید',
+    title: 'سفارشی سراسری',
+    description: 'نمایش آگهی با نشان ویژه در تمام شهرها.',
+    fallbackPrice: 69900,
     Icon: ComboIcon,
   },
 ];
 
-const Package = ({ step, setStep, setPackage }) => {
+const Package = ({ step, setStep, setPackage, freeAdsLeft = true }) => {
   const [plans, setPlans] = useState([]);
   const [selectedPlanId, setSelectedPlanId] = useState(null);
 
@@ -72,17 +75,11 @@ const Package = ({ step, setStep, setPackage }) => {
     }
   };
 
-  const findPlanByName = (planName) =>
-    plans?.find(
-      (p) => p.Name.trim() === planName.trim() || planName.includes(p.Name.trim())
-    );
+  const findPlanById = (planId) => plans?.find((p) => Number(p.PlanId) === Number(planId));
 
-  const handlePlanSelect = (planName) => {
-    const plan = findPlanByName(planName);
-    if (plan?.PlanId) {
-      setSelectedPlanId(plan.PlanId);
-      setPackage(plan.PlanId);
-    }
+  const handlePlanSelect = (planId) => {
+    setSelectedPlanId(planId);
+    setPackage(planId);
   };
 
   useEffect(() => {
@@ -94,36 +91,27 @@ const Package = ({ step, setStep, setPackage }) => {
   return (
     <div dir="rtl" className="px-4 pt-5 sm:px-5">
       <div className="mx-auto max-w-xl rounded-[20px] border border-[#EEF1F6] bg-white p-4 shadow-[0_2px_10px_rgba(20,36,63,.04)] sm:p-5">
-        <div className="flex flex-row-reverse items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setStep(9)}
-            className="flex flex-row-reverse items-center gap-2 rounded-xl bg-gradient-orange px-4 py-2.5 text-[12.5px] font-bold text-white"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            پرداخت
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="h-5 w-[3px] rounded-[3px] bg-primary" />
-            <h2 className="m-0 text-[17px] font-bold text-secondary">نوع آگهی</h2>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="h-5 w-[3px] rounded-[3px] bg-primary" />
+          <h2 className="m-0 text-[17px] font-bold text-secondary">نوع آگهی</h2>
         </div>
 
-        <p className="m-0 py-3 text-[13px] text-[#98A2B3]">نوع آگهی خود را انتخاب کنید</p>
+        <p className="m-0 py-3 text-[13px] text-[#98A2B3]">دسته بندی آگهی خود را انتخاب کنید</p>
 
         <div className="space-y-3">
-          {PLAN_CARDS.map(({ id, matchName, title, description, Icon }) => {
-            const plan = findPlanByName(matchName);
+          {PLAN_CARDS.map(({ id, title, description, fallbackPrice, paidTitle, paidDescription, paidFallbackPrice, Icon }) => {
+            const plan = findPlanById(id);
             const selected = selectedPlanId === id || selectedPlanId === plan?.PlanId;
-            const price = plan?.PlanPrice;
+            const paidRegister = id === 1 && !freeAdsLeft;
+            const price = paidRegister ? paidFallbackPrice : plan?.PlanPrice ?? fallbackPrice;
+            const cardTitle = paidRegister ? paidTitle : title;
+            const cardDescription = paidRegister ? paidDescription : description;
 
             return (
               <button
                 key={id}
                 type="button"
-                onClick={() => handlePlanSelect(matchName)}
+                onClick={() => handlePlanSelect(id)}
                 className={`flex w-full items-center gap-3 rounded-2xl border bg-white p-4 text-right transition sm:gap-4 sm:p-5 ${
                   selected
                     ? 'border-primary shadow-[0_8px_24px_rgba(255,94,0,0.18)] ring-2 ring-primary/25'
@@ -140,7 +128,7 @@ const Package = ({ step, setStep, setPackage }) => {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="text-[14px] font-bold text-secondary sm:text-[15px]">{title}</h2>
+                    <h2 className="text-[14px] font-bold text-secondary sm:text-[15px]">{cardTitle}</h2>
                     {selected && (
                       <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] text-white">
                         انتخاب شده
@@ -148,7 +136,7 @@ const Package = ({ step, setStep, setPackage }) => {
                     )}
                   </div>
                   <p className="mt-1 font-['vazir'] text-[12px] leading-5 text-[#8A8A8A] sm:text-[13px]">
-                    {description}
+                    {cardDescription}
                   </p>
                   {price != null && Number(price) > 0 && (
                     <p className="mt-2 font-['vazir'] text-[13px] font-bold text-primary">

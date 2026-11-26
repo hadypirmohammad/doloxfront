@@ -28,3 +28,12 @@ export function findProvinceIdForCity(cities = [], cityId) {
   const found = findCityById(cities, cityId);
   return found?.ProvinceId ?? found?.ParentId ?? '';
 }
+
+export function withProvinceNames(ads = [], cities = []) {
+  if (!Array.isArray(ads)) return [];
+  return ads.map((ad) => {
+    if (!ad || ad.ProvinceName) return ad;
+    const province = findCityById(cities, ad.CityId)?.ProvinceName;
+    return province ? { ...ad, ProvinceName: province } : ad;
+  });
+}

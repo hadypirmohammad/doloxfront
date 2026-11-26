@@ -18,7 +18,7 @@ const PageHeading = ({ title, subtitle, crumb, layout }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         flex: '0 0 auto',
-                        backgroundColor: '#F4661C'
+                        backgroundColor: '#FF5E00'
                     }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>

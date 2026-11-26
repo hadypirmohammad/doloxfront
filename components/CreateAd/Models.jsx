@@ -5,17 +5,16 @@ import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react'
 
 const BRAND_IMAGE_FALLBACK = '/media/images/samplebrand.png';
-const PAGE_SIZE = 12;
 
 const Models = ({ brand, setStep, step, setModel }) => {
 
     const [modelData, setModelData] = useState([]);
     const [searchInput, setSearchInput] = useState('');
-    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const [brandImage, setBrandImage] = useState(BRAND_IMAGE_FALLBACK);
 
     useEffect(() => {
         const fetchModels = async () => {
+            if (!brand?.BrandId) return;
             try {
                 const fetchedModel = await getModelsByBrand(brand);
                 setModelData(Array.isArray(fetchedModel) ? fetchedModel : []);
@@ -30,10 +29,6 @@ const Models = ({ brand, setStep, step, setModel }) => {
     useEffect(() => {
         setBrandImage(resolveBackendMediaUrl(brand?.Image, BRAND_IMAGE_FALLBACK));
     }, [brand]);
-
-    useEffect(() => {
-        setVisibleCount(PAGE_SIZE);
-    }, [brand, searchInput]);
 
     const visibleModels = useMemo(() => {
         const term = normalizeSearchTerm(searchInput);
@@ -98,7 +93,7 @@ const Models = ({ brand, setStep, step, setModel }) => {
                     <p className="py-10 text-center font-['vazir'] text-sm text-[#8A8A8A]">مدلی یافت نشد</p>
                 ) : (
                     <div className='mt-2.5 flex flex-col gap-1.5'>
-                        {visibleModels.slice(0, visibleCount).map((model, index) => (
+                        {visibleModels.map((model, index) => (
                             <div
                                 key={model.ModelId || index}
                                 className='flex cursor-pointer flex-row-reverse items-center justify-between rounded-[13px] border border-[#EEF1F6] bg-white px-3.5 py-3.5 transition-colors hover:border-primary'
@@ -114,19 +109,6 @@ const Models = ({ brand, setStep, step, setModel }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {visibleModels.length > visibleCount && (
-                    <button
-                        type='button'
-                        onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                        className='mt-3 flex w-full flex-row-reverse items-center justify-center gap-2 rounded-2xl border border-[#EAEEF4] bg-white py-3 text-[13px] font-semibold text-[#42536B]'
-                    >
-                        <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                            <path d='M6 9l6 6 6-6' />
-                        </svg>
-                        نمایش بیشتر
-                    </button>
                 )}
             </div>
         </div>

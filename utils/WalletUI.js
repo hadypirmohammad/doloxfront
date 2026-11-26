@@ -1,5 +1,5 @@
 export const C = {
-    brand: '#F4661C',
+    brand: '#FF5E00',
     brandDark: '#DB5814',
     brandDeep: '#C9500F',
     brandSoft: '#FDEDE3',
@@ -58,7 +58,9 @@ export function getLayout(isDesktop) {
         resultPad: isDesktop ? '34px 32px' : '26px 18px',
         statePad: isDesktop ? '54px 32px' : '34px 18px',
         resBtnCols: isDesktop ? '1fr 1fr' : '1fr',
-        modalAlign: isDesktop ? 'center' : 'flex-end'
+        modalAlign: isDesktop ? 'center' : 'flex-end',
+        modalPadBottom: isDesktop ? 18 : 'calc(76px + env(safe-area-inset-bottom))',
+        modalMaxHeight: isDesktop ? '88dvh' : '72dvh'
     };
 }
 

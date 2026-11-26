@@ -3,15 +3,6 @@ const nextConfig = {
   reactStrictMode: false,
   productionBrowserSourceMaps: true,
 
-  async rewrites() {
-    return [
-      {
-        source: "/chatHub/:path*",
-        destination: "https://api.dolox.ir/chatHub/:path*",
-      },
-    ];
-  },
-
   images: {
     remotePatterns: [
       {

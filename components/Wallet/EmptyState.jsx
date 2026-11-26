@@ -39,7 +39,7 @@ const EmptyState = ({ layout, onAction }) => {
                 onClick={onAction}
                 style={{
                     border: 'none',
-                    background: '#F4661C',
+                    background: '#FF5E00',
                     color: '#fff',
                     fontSize: 14.5,
                     fontWeight: 600,

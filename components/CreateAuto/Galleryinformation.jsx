@@ -59,7 +59,7 @@ const GalleryInformation = ({ step, setStep , setDescription , setName }) => {
                         <div className="form-control w-full mt-4">
                             <label className="form-control w-full relative">
                                 <div className="label">
-                                    <span className="label-text">نام اتوگالری</span>
+                                    <span className="label-text">نام گالری</span>
                                 </div>
                                 <input
                                     id="name"
@@ -80,13 +80,13 @@ const GalleryInformation = ({ step, setStep , setDescription , setName }) => {
                     <div className="form-control w-full mt-4">
                         <label className="form-control w-full relative">
                             <div className="label">
-                                <span className="label-text">درباره اتوگالری</span>
+                                <span className="label-text">درباره گالری</span>
                             </div>
                             <textarea
                                 id="description"
                                 dir="rtl"
                                 type="text"
-                                placeholder="درباره اتوگالری"
+                                placeholder="درباره گالری"
                                 className=" h-36 p-2  input  focus:outline-primary border-none w-full bg-base-200 font-['vazir']"
                                 value={formik.values.description}
                                 onChange={formik.handleChange}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
-const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
+const DoubleSlider = ({ min, max, currentMin, currentMax, onChange, step = 10 }) => {
     // مقدار اولیه را از Props می‌گیریم (اگر وجود داشت)
     const [minVal, setMinVal] = useState(currentMin || min);
     const [maxVal, setMaxVal] = useState(currentMax || max);
@@ -33,7 +33,7 @@ const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
 
     // هندل کردن تغییر مقدار Min
     const handleMinChange = (event) => {
-        const value = Math.min(Number(event.target.value), maxVal - 1);
+        const value = Math.min(Number(event.target.value), maxVal - Number(step));
         setMinVal(value);
         minValRef.current = value;
         // فراخوانی مستقیم در اینجا به جای useEffect
@@ -42,7 +42,7 @@ const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
 
     // هندل کردن تغییر مقدار Max
     const handleMaxChange = (event) => {
-        const value = Math.max(Number(event.target.value), minVal + 1);
+        const value = Math.max(Number(event.target.value), minVal + Number(step));
         setMaxVal(value);
         maxValRef.current = value;
         // فراخوانی مستقیم در اینجا به جای useEffect
@@ -50,12 +50,12 @@ const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
     };
 
     return (
-        <div dir="ltr" className=" w-fit relative">
+        <div dir="ltr" className="relative w-full px-2.5 pt-1">
             <input
                 type="range"
                 min={min}
                 max={max}
-                step={10}
+                step={step}
                 value={minVal}
                 onChange={handleMinChange}
                 className="thumb thumb--left"
@@ -65,7 +65,7 @@ const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
                 type="range"
                 min={min}
                 max={max}
-                step={10}
+                step={step}
                 value={maxVal}
                 onChange={handleMaxChange}
                 className="thumb thumb--right"
@@ -78,15 +78,15 @@ const DoubleSlider = ({ min, max, currentMin, currentMax, onChange }) => {
                 {/* مقادیر نمایشی دو طرف اسلایدر */}
                      </div>
 
-            <div className="!bg-transparent text-black pt-10 gap-2 text-sm items-center flex mt-1">
-                <div className="!bg-transparent border w-1/2 border-black rounded-md font-[vazir] p-1 text-center">
-                    {maxVal.toLocaleString()}
+            <div dir="rtl" className="mt-3 flex items-center gap-2 text-[12.5px] text-secondary">
+                <span className="font-[vazir] text-[#8B94A5]">از</span>
+                <div className="min-w-0 flex-1 rounded-lg border border-[#E5E5E5] bg-white p-1.5 text-center font-[vazir]">
+                    {minVal.toLocaleString('fa-IR')}
                 </div>
-                <span className="font-[vazir]">تا</span>
-                <div className="!bg-transparent border w-1/2 border-black rounded-md font-[vazir] p-1 text-center">
-                    {minVal.toLocaleString()}
+                <span className="font-[vazir] text-[#8B94A5]">تا</span>
+                <div className="min-w-0 flex-1 rounded-lg border border-[#E5E5E5] bg-white p-1.5 text-center font-[vazir]">
+                    {maxVal.toLocaleString('fa-IR')}
                 </div>
-                <span className="font-[vazir]">از</span>
             </div>
         </div>
     );

@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import WalletShell from '@/components/Wallet/WalletShell';
 import PaymentResult, { buildResultView } from '@/components/Wallet/PaymentResult';
 import { PREVIEW_WITHOUT_LOGIN, getToken, withAuth } from '@/utils/Auth';
-import { verifyWalletDeposit } from '@/utils/Request';
+import { getWalletTransactions } from '@/utils/Request';
+import { extractTransactions } from '@/utils/services/wallet';
 import { mockVerifiedDeposit } from '@/utils/services/wallet.mock';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { getLayout } from '@/utils/WalletUI';
@@ -16,24 +17,48 @@ export async function getServerSideProps(context) {
     }
 
     const token = await getToken(context);
-    const trackId = context.query.trackId || context.query.trackid || context.query.tracking || '';
-    const amount = Number(context.query.amount) || 0;
+    const query = context.query || {};
 
-    const verified = trackId ? await verifyWalletDeposit(token, trackId) : '';
-    const succeeded = /true|success|موفق/i.test(verified);
+    const pick = (...names) => {
+        for (const name of names) {
+            const hit = Object.keys(query).find((key) => key.toLowerCase() === name.toLowerCase());
+            if (hit && query[hit] !== '') return String(query[hit]);
+        }
+        return '';
+    };
+
+    const trackId = pick('trackId', 'trackid', 'tracking', 'trackingCode', 'refId', 'refid', 'authority', 'orderId');
+    const amount = Number(pick('amount', 'Amount')) || 0;
+    const rawStatus = pick('status', 'success', 'result', 'state');
+    const failed = /^(0|-1|false|nok|fail|failed|cancel|canceled|cancelled)$/i.test(rawStatus) || /fail|cancel|ناموفق|لغو/i.test(rawStatus);
+    const succeeded = !failed && (/^(1|2|100|ok|true|success|succeeded|paid)$/i.test(rawStatus) || /success|موفق/i.test(rawStatus));
+
+    let latest = null;
+    if (token) {
+        try {
+            const result = await getWalletTransactions(token, 1, 5);
+            const { items } = extractTransactions(result);
+            latest = items.find((item) => trackId && String(item.trackingCode) === String(trackId)) || items[0] || null;
+        } catch (error) {
+            console.error('Could not read wallet transactions:', error);
+        }
+    }
+
+    const resolvedStatus = succeeded ? 'success' : failed ? 'failed' : latest?.status || '';
+    const settled = Boolean(resolvedStatus);
 
     return {
         props: {
-            forcedStatus: context.query.status || (trackId ? (succeeded ? 'success' : 'failed') : ''),
-            amount,
-            trackId,
-            payload: verified
+            forcedStatus: settled ? resolvedStatus : '',
+            amount: amount || latest?.amount || 0,
+            trackId: trackId || latest?.trackingCode || '',
+            payload: settled
                 ? {
-                      status: succeeded ? 'success' : 'failed',
-                      amount,
-                      trackingCode: trackId,
-                      date: '',
-                      time: '',
+                      status: resolvedStatus,
+                      amount: amount || latest?.amount || 0,
+                      trackingCode: trackId || latest?.trackingCode || '',
+                      date: latest?.date || '',
+                      time: latest?.time || '',
                   }
                 : null,
         },

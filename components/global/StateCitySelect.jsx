@@ -1,5 +1,77 @@
 import { findProvinceIdForCity, getProvinces } from '@/utils/cities';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+const Dropdown = ({ options, value, placeholder, onSelect, disabled, className }) => {
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (event) => {
+      if (boxRef.current && !boxRef.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
+  const selected = options.find((item) => String(item.CityId) === String(value));
+
+  return (
+    <div ref={boxRef} className="relative w-full">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((prev) => !prev)}
+        className={`${className} flex cursor-pointer items-center justify-between gap-2 text-right disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        <span className={selected ? 'truncate text-secondary' : 'truncate text-[#A3ADBC]'}>
+          {selected?.CityName || placeholder}
+        </span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#8E9AAC"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`flex-none transition-transform ${open ? 'rotate-180' : ''}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute inset-x-0 top-full z-40 mt-1.5 max-h-60 overflow-y-auto rounded-2xl border border-[#EEF1F6] bg-white p-1.5 shadow-[0_8px_20px_rgba(20,36,63,.12)]">
+          {options.length === 0 ? (
+            <p className="m-0 py-4 text-center text-[13px] text-[#A3ADBC]">موردی یافت نشد</p>
+          ) : (
+            options.map((item) => (
+              <div
+                key={item.CityId}
+                onClick={() => {
+                  onSelect(String(item.CityId));
+                  setOpen(false);
+                }}
+                className={`cursor-pointer rounded-[10px] px-3.5 py-2.5 text-[14px] ${
+                  String(item.CityId) === String(value)
+                    ? 'bg-[#FFF3EA] font-bold text-primary'
+                    : 'text-[#42536B] hover:bg-[#F7F9FC]'
+                }`}
+              >
+                {item.CityName}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 /**
  * Two-field location picker: استان then شهر.
@@ -62,58 +134,46 @@ const StateCitySelect = ({
     }
   };
 
-  const handleProvinceChange = (event) => {
-    const next = event.target.value;
+  const handleProvinceChange = (next) => {
     setProvinceId(next);
     setCityId('');
     onChange?.(returnObject ? null : '');
   };
 
-  const handleCityChange = (event) => {
-    const next = event.target.value;
+  const handleCityChange = (next) => {
     setCityId(next);
     emitCity(next);
   };
 
   return (
     <div className={`flex w-full flex-col gap-3 ${className}`} dir="rtl">
-      <label className="form-control w-full">
+      <div className="form-control w-full">
         <div className={labelClassName}>
           <span className={labelTextClassName}>{stateLabel}</span>
         </div>
-        <select
-          className={selectClassName}
+        <Dropdown
+          options={provinces}
           value={provinceId}
-          onChange={handleProvinceChange}
+          placeholder="انتخاب استان"
+          onSelect={handleProvinceChange}
           disabled={disabled}
-        >
-          <option value="">انتخاب استان</option>
-          {provinces.map((province) => (
-            <option key={province.CityId} value={province.CityId}>
-              {province.CityName}
-            </option>
-          ))}
-        </select>
-      </label>
+          className={selectClassName}
+        />
+      </div>
 
-      <label className="form-control w-full">
+      <div className="form-control w-full">
         <div className={labelClassName}>
           <span className={labelTextClassName}>{cityLabel}</span>
         </div>
-        <select
-          className={selectClassName}
+        <Dropdown
+          options={childCities}
           value={cityId}
-          onChange={handleCityChange}
+          placeholder="انتخاب شهر"
+          onSelect={handleCityChange}
           disabled={disabled || !provinceId}
-        >
-          <option value="">انتخاب شهر</option>
-          {childCities.map((city) => (
-            <option key={city.CityId} value={city.CityId}>
-              {city.CityName}
-            </option>
-          ))}
-        </select>
-      </label>
+          className={selectClassName}
+        />
+      </div>
     </div>
   );
 };

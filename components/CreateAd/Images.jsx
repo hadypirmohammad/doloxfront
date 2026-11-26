@@ -106,24 +106,9 @@ const Images = ({ step, setStep, images, setImages }) => {
     return (
         <div dir="rtl" className="px-4 pt-5 sm:px-5 [&_*]:!font-['vazir']">
             <div className="mx-auto max-w-xl rounded-[20px] border border-[#EEF1F6] bg-white p-4 shadow-[0_2px_10px_rgba(20,36,63,.04)] sm:p-5">
-                <div className="flex flex-row-reverse items-center justify-between gap-3">
-                    <button
-                        type="button"
-                        disabled={!images.length}
-                        onClick={() => setStep(7)}
-                        className={`flex flex-row-reverse items-center gap-2 rounded-xl px-4 py-2.5 text-[12.5px] font-bold text-white transition-opacity ${
-                            images.length ? 'bg-gradient-orange' : 'cursor-not-allowed bg-[#F1B392]'
-                        }`}
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M19 12H5M12 19l-7-7 7-7" />
-                        </svg>
-                        ادامه
-                    </button>
-                    <div className="flex items-center gap-2">
-                        <span className="h-5 w-[3px] rounded-[3px] bg-primary" />
-                        <h2 className="m-0 text-[17px] font-bold text-secondary">تصاویر آگهی</h2>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <span className="h-5 w-[3px] rounded-[3px] bg-primary" />
+                    <h2 className="m-0 text-[17px] font-bold text-secondary">تصاویر آگهی</h2>
                 </div>
 
                 <p className="m-0 py-3 text-[13px] text-[#98A2B3]">تصاویر جذاب‌تر بازدید آگهی شما را افزایش می‌دهند.</p>
@@ -168,7 +153,7 @@ const Images = ({ step, setStep, images, setImages }) => {
                     <div className="flex items-center gap-2 pb-3">
                         <span className="h-[18px] w-[3px] rounded-[3px] bg-primary" />
                         <h3 className="m-0 text-[15px] font-bold text-secondary">
-                            {!images.length ? 'حداقل یک تصویر انتخاب کنید' : `${toPersianDigits(images.length)} تصویر انتخاب شده`}
+                            {!images.length ? 'افزودن تصویر اختیاری است' : `${toPersianDigits(images.length)} تصویر انتخاب شده`}
                         </h3>
                     </div>
 
@@ -243,7 +228,7 @@ const Images = ({ step, setStep, images, setImages }) => {
                     <div className="flex-1">
                         <p className="m-0 text-[12.5px] font-bold text-primary">نکته:</p>
                         <p className="m-0 pt-1 text-[12.5px] text-[#8B94A5]">
-                            هرچه تصاویر شما بیشتر و با کیفیت‌تر باشد، احتمال فروش سریع‌تر آگهی شما بیشتر می‌شود.
+                            هرچه تصاویر شما بیشتر و با کیفیت‌تر باشد، احتمال فروش سریع‌تر آگهی شما بیشتر می‌شود. اگر تصویری ثبت نکنید، تصویر پیش‌فرض دولوکس روی آگهی شما نمایش داده می‌شود.
                         </p>
                     </div>
                 </div>
@@ -262,11 +247,8 @@ const Images = ({ step, setStep, images, setImages }) => {
                 </button>
                 <button
                     type="button"
-                    disabled={!images.length}
                     onClick={() => setStep(7)}
-                    className={`flex flex-1 flex-row-reverse items-center justify-center gap-2.5 rounded-2xl py-3.5 text-[14.5px] font-bold text-white transition-opacity ${
-                        images.length ? 'bg-gradient-orange' : 'cursor-not-allowed bg-[#F1B392]'
-                    }`}
+                    className="flex flex-1 flex-row-reverse items-center justify-center gap-2.5 rounded-2xl bg-gradient-orange py-3.5 text-[14.5px] font-bold text-white"
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7" />

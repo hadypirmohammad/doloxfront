@@ -2,6 +2,7 @@ import React from 'react'
 import Header from './Header'
 import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
+import CompleteProfileModal from './CompleteProfileModal'
 
 const Layout = ({ children , user }) => {
   return (
@@ -14,6 +15,7 @@ const Layout = ({ children , user }) => {
       </main>
           <Footer/>
           <MobileBottomNav />
+          <CompleteProfileModal user={user} />
     </>
   )
 }

@@ -1,221 +1,88 @@
+import { useState } from 'react';
 import AdsSection from '@/components/Home/AdsSection';
-import AuctionSection from '@/components/Home/AuctionSection';
-import CategoryNav from '@/components/Home/CategoryNav';
-import DailyPrices from '@/components/Home/DailyPrices';
-import GallerySection from '@/components/Home/GallerySection';
-import HeroBanner from '@/components/Home/HeroBanner';
-import KhalafiSection from '@/components/Home/KhalafiSection';
-import NewsSection from '@/components/Home/NewsSection';
-import SearchBox from '@/components/Home/SearchBox';
-import { getBlogs, getCarPrices, getLastads, getLastGallery } from '@/utils/Request';
-import { resolveBackendMediaUrl } from '@/utils/media';
+import SectionShell from '@/components/HomeV2/SectionShell';
+import NewsV2 from '@/components/HomeV2/NewsV2';
+import AuctionsV2 from '@/components/HomeV2/AuctionsV2';
+import GalleriesBannerV2 from '@/components/HomeV2/GalleriesBannerV2';
+import HeroV2 from '@/components/HomeV2/HeroV2';
+import PopularBrandsV2 from '@/components/HomeV2/PopularBrandsV2';
+import VehicleTypesV2 from '@/components/HomeV2/VehicleTypesV2';
+import { getToken } from '@/utils/Auth';
+import CarPricesV2 from '@/components/HomeV2/CarPricesV2';
+import { getPricedCars } from '@/utils/services/carPriceIndex';
+import { withProvinceNames } from '@/utils/cities';
+import HomePopups from '@/components/HomeV2/HomePopups';
+import { getAuctions, getBlogs, getBodyTypes, getcities } from '@/utils/Request';
+import { useHomeData } from '@/hooks/useHomeData';
 
-function mapHomePrices(items = []) {
-  return items.slice(0, 6).map((item) => {
-    const direction = item?.priceChange?.direction || item?.priceChange?.changeDirection || 'none';
-    const changePct =
-      item?.priceChange?.percent ??
-      item?.priceChange?.changePercent ??
-      item?.priceChange?.value ??
-      null;
+const HEAD_BRANDS = [5, 6, 7];
 
-    return {
-      brandId: item.brandId,
-      name: [item.parentBrand, item.carName].filter(Boolean).join(' — ') || item.carName,
-      price: item.currentPriceToman ?? item.price ?? item.latestPrice ?? null,
-      change: typeof changePct === 'number' ? changePct : null,
-      direction,
-      icon: resolveBackendMediaUrl(item.carImage),
-    };
-  });
+export async function getServerSideProps(context) {
+  const token = await getToken(context);
+
+  const [blogs, cities, auctions, carPrices, bodyTypes] = await Promise.all([
+    getBlogs(4).catch(() => []),
+    getcities().catch(() => []),
+    getAuctions(token || '', '', '', '', undefined, undefined, undefined, 1, 6).catch(() => []),
+    getPricedCars({ waitMs: 6000 }).catch(() => []),
+    getBodyTypes().catch(() => []),
+  ]);
+
+  return {
+    props: {
+      blogs: Array.isArray(blogs) ? blogs : [],
+      cities: Array.isArray(cities) ? cities : [],
+      auctions: Array.isArray(auctions) ? auctions.slice(0, 6) : [],
+      hasSubscription: Boolean(token),
+      carPrices,
+      bodyTypes,
+    },
+  };
 }
 
-export async function getServerSideProps() {
-  try {
-    const [ads, autogalleries, blogs, carPrices] = await Promise.all([
-      getLastads(),
-      getLastGallery(),
-      getBlogs(4),
-      getCarPrices({ page: 1, pageSize: 6 }).catch(() => null),
-    ]);
-    return {
-      props: {
-        ads: ads || [],
-        autogalleries: autogalleries || [],
-        blogs: blogs || [],
-        dailyPrices: mapHomePrices(carPrices?.items || []),
-      },
-    };
-  } catch {
-    return { props: { ads: [], autogalleries: [], blogs: [], dailyPrices: [] } };
-  }
-}
+const Home = ({ blogs, cities, auctions, hasSubscription, carPrices = [], bodyTypes = [] }) => {
+  const [headBrandId, setHeadBrandId] = useState(5);
+  const { ads, brands, loading } = useHomeData(headBrandId);
 
-const mockAuctions = [
-  {
-    id: 1,
-    title: 'سمند سورن پلاس',
-    city: 'تهران',
-    end_date: '2027-05-15',
-    base_price: '320000000',
-  },
-  {
-    id: 2,
-    title: 'پژو ۲۰۶ مدل ۱۴۰۲',
-    city: 'اصفهان',
-    end_date: '2027-05-10',
-    base_price: '850000000',
-  },
-  {
-    id: 3,
-    title: 'دنا پلاس توربو',
-    city: 'مشهد',
-    end_date: '2027-05-20',
-    base_price: '1150000000',
-  },
-  {
-    id: 4,
-    title: 'شاهین G',
-    city: 'کرج',
-    end_date: '2027-05-18',
-    base_price: '890000000',
-  },
-  {
-    id: 5,
-    title: 'کوییک R',
-    city: 'شیراز',
-    end_date: '2027-05-22',
-    base_price: '455000000',
-  },
-];
+  const adsWithProvince = withProvinceNames(ads, cities);
 
-const mockAds = [
-  {
-    Title: 'پژو ۲۰۶ تیپ ۲ مدل ۱۴۰۱',
-    CityName: 'تهران',
-    CoverImage: '/media/images/samplecar.png',
-    BrandName: 'پژو',
-    Price: 850000000,
-    IsAgreement: false,
-    isGest: false,
-    isRent: false,
-    Worked: 5000,
-    Year: 1401,
-    EnTitle: 'peugeot-206',
-    AdFeatures: [
-      {
-        Feature: {
-          ParentFeature: { FeatureName: 'نوع دنده ' },
-          FeatureName: 'دستی',
-        },
-      },
-    ],
-  },
-  {
-    Title: 'پراید ۱۳۱ مدل ۱۴۰۰',
-    CityName: 'اصفهان',
-    CoverImage: '/media/images/samplecar.png',
-    BrandName: 'سایپا',
-    Price: 450000000,
-    IsAgreement: true,
-    isGest: true,
-    isRent: false,
-    Worked: 25000,
-    Year: 1400,
-    EnTitle: 'pride-131',
-    AdFeatures: [
-      {
-        Feature: {
-          ParentFeature: { FeatureName: 'نوع دنده ' },
-          FeatureName: 'دستی',
-        },
-      },
-    ],
-  },
-  {
-    Title: 'سمند EF7 مدل ۱۴۰۲',
-    CityName: 'مشهد',
-    CoverImage: '/media/images/samplecar.png',
-    BrandName: 'ایران خودرو',
-    Price: 720000000,
-    IsAgreement: false,
-    isGest: true,
-    isRent: false,
-    Worked: 1200,
-    Year: 1402,
-    EnTitle: 'samand-ef7',
-    AdFeatures: [
-      {
-        Feature: {
-          ParentFeature: { FeatureName: 'نوع دنده ' },
-          FeatureName: 'اتوماتیک',
-        },
-      },
-    ],
-  },
-  {
-    Title: 'دنا پلاس توربو',
-    CityName: 'کرج',
-    CoverImage: '/media/images/samplecar.png',
-    BrandName: 'ایران خودرو',
-    Price: 1150000000,
-    IsAgreement: false,
-    isGest: false,
-    isRent: false,
-    Worked: 8000,
-    Year: 1402,
-    EnTitle: 'dena-plus',
-    AdFeatures: [
-      {
-        Feature: {
-          ParentFeature: { FeatureName: 'نوع دنده ' },
-          FeatureName: 'اتوماتیک',
-        },
-      },
-    ],
-  },
-];
+  const brandLogos = Object.fromEntries(
+    brands.filter((brand) => brand.headBrandId === headBrandId).map((brand) => [brand.Name.trim(), brand.Image])
+  );
 
-const mockAutos = [
-  {
-    company_name: 'پرشیا خودرو',
-    city: 'تهران',
-    logo: '/media/images/sampleautogallery.png',
-  },
-  {
-    company_name: 'بازار خودرو پایتخت',
-    city: 'تهران',
-    logo: '/media/images/sampleautogallery.png',
-  },
-  {
-    company_name: 'آژانس خودرو شرق',
-    city: 'مشهد',
-    logo: '/media/images/sampleautogallery.png',
-  },
-  {
-    company_name: 'گالری خودرو البرز',
-    city: 'کرج',
-    logo: '/media/images/sampleautogallery.png',
-  },
-  {
-    company_name: 'نمایندگی سایپا فردیس',
-    city: 'کرج',
-    logo: '/media/images/sampleautogallery.png',
-  },
-];
+  const brandIndex = Object.fromEntries(
+    brands.map((brand) => [brand.BrandId, { name: brand.Name, image: brand.Image }])
+  );
 
-export default function Home({ ads, autogalleries, blogs, dailyPrices }) {
+  const filteredBrands = brands.filter((brand) => brand.headBrandId === headBrandId);
+
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-secondary" dir="rtl">
-      <HeroBanner />
-      <SearchBox />
-      <CategoryNav />
-      <AuctionSection auctions={mockAuctions} />
-      <AdsSection ads={ads?.length ? ads : mockAds} />
-      <GallerySection galleries={autogalleries?.length ? autogalleries : mockAutos} />
-      <KhalafiSection />
-      <DailyPrices prices={dailyPrices} />
-      <NewsSection blogs={blogs} />
+  <div dir="rtl" className="relative min-h-screen overflow-hidden bg-[#EEF2F7] text-secondary">
+    <span className="pointer-events-none absolute -right-40 top-[18%] h-[520px] w-[520px] rounded-full bg-[#FF5E00]/10 blur-[120px]" />
+    <span className="pointer-events-none absolute -left-48 top-[48%] h-[560px] w-[560px] rounded-full bg-[#2BA8D6]/14 blur-[130px]" />
+    <span className="pointer-events-none absolute right-[22%] bottom-[8%] h-[460px] w-[460px] rounded-full bg-[#1E2A3A]/8 blur-[120px]" />
+    <HomePopups />
+    <div className="relative">
+      <HeroV2
+        brands={brands}
+        cities={cities}
+        headBrandId={headBrandId}
+        onCategoryChange={setHeadBrandId}
+      />
+    <VehicleTypesV2 headBrandId={headBrandId} bodyTypes={bodyTypes} connect={false} />
+    <SectionShell title="آخرین آگهی ها" href="/ads" plain>
+        <AdsSection ads={adsWithProvince} surface="" bare brandIndex={brandIndex} />
+      </SectionShell>
+    <AuctionsV2 auctions={auctions} hasSubscription={hasSubscription} />
+    <GalleriesBannerV2 />
+    <PopularBrandsV2 brands={filteredBrands} />
+    <CarPricesV2 items={carPrices} logos={brandLogos} />
+    <SectionShell title="آخرین اخبار" href="https://blog.dolox.ir">
+        <NewsV2 blogs={blogs} />
+      </SectionShell>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
+import EditStep from './EditStep';
 
 // Validation
 const validationSchema = Yup.object().shape({
@@ -68,91 +69,66 @@ const Price = ({
     if (step !== 3) return null;
 
     return (
-        <div>
-            <div className='px-2 md:px-0 [&_*]:!font-["vazir"]'>
-                <div dir='rtl' className='py-2 md:max-w-lg mx-auto px-4'>
-
-                    {/* Buttons */}
-                    <div dir='ltr' className='justify-between w-full flex items-center'>
-                        <button
-                            type='button'
-                            className='btn btn-sm bg-primary text-white border-none'
-                            onClick={formik.handleSubmit}
-                        >
-                            ادامه
-                        </button>
-
-                        <button
-                            type='button'
-                            className='btn-sm text-primary bg-transparent shadow-none border-none'
-                            onClick={() => setStep(step - 1)}
-                        >
-                            قبلی
-                        </button>
-                    </div>
-
-                    {/* Category Selector */}
-                    <div className='flex bg-gradient-red mx-auto justify-between max-w-md w-full text-white rounded-[50px] px-7 py-1 mt-8'>
-                        {["نقدی", "اقساط", "توافقی"].map((item) => (
-                            <div
-                                key={item}
-                                className={`font-["vazir-bold"] w-full text-center py-2 rounded-full cursor-pointer ${category === item ? "text-black bg-white" : ""
-                                    }`}
-                                onClick={() => {
-                                    setCategory(item);
-                                    if (item === "توافقی") {
-                                        formik.setFieldValue('price', '');
-                                    }
-                                }}
-                            >
-                                {item}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Price Input */}
-                    {category !== "توافقی" && (
-                        <div className="form-control w-full mt-4">
-                            <label className="form-control w-full relative">
-                                <div className="label">
-                                    <span className="label-text">قیمت</span>
-                                </div>
-
-                                <input
-                                    dir="ltr"
-                                    type="number"
-                                    placeholder="200000"
-                                    className="input focus:outline-primary border-none w-full bg-base-200"
-                                    {...formik.getFieldProps('price')}
-                                />
-
-                                <span className='absolute top-12 right-6'>
-                                    تومان
-                                </span>
-
-                                {formik.touched.price && formik.errors.price && (
-                                    <div className="text-red-500 text-sm">
-                                        {formik.errors.price}
-                                    </div>
-                                )}
-                            </label>
-                        </div>
-                    )}
-
-                    {/* Rent Checkbox */}
-                    <div className='flex gap-2 mt-4'>
-                        <input
-                            type="checkbox"
-                            checked={isRent}
-                            onChange={() => setIsRent(!isRent)}
-                            className="checkbox border-orange-400 [--chkbg:theme(colors.primary)] [--chkfg:white]"
-                        />
-                        <p>خودرو را اجاره هم می دهم</p>
-                    </div>
-
-                </div>
+        <EditStep
+            title='قیمت'
+            hint='نوع قیمت و مبلغ را مشخص کنید.'
+            onPrev={() => setStep(step - 1)}
+            onNext={formik.handleSubmit}
+        >
+            {/* Category Selector */}
+            <div className='grid grid-cols-3 gap-2'>
+                {["نقدی", "اقساط", "توافقی"].map((item) => (
+                    <button
+                        key={item}
+                        type='button'
+                        onClick={() => {
+                            setCategory(item);
+                            if (item === "توافقی") {
+                                formik.setFieldValue('price', '');
+                            }
+                        }}
+                        className={`h-11 rounded-[12px] border text-[14px] font-bold transition-colors ${
+                            category === item
+                                ? 'border-primary bg-[#FFF3EA] text-primary'
+                                : 'border-[#E7EBF1] bg-white text-[#42536B]'
+                        }`}
+                    >
+                        {item}
+                    </button>
+                ))}
             </div>
-        </div>
+
+            {/* Price Input */}
+            {category !== "توافقی" && (
+                <label className='mt-4 block'>
+                    <span className='block pb-1.5 text-[13.5px] font-bold text-secondary'>قیمت</span>
+                    <span className='flex h-12 items-center gap-2 rounded-[14px] border border-[#E7EBF1] bg-[#FAFBFC] px-3.5 focus-within:border-primary'>
+                        <input
+                            dir='ltr'
+                            type='number'
+                            placeholder='200000'
+                            className='h-full w-full bg-transparent text-[14px] text-secondary outline-none'
+                            {...formik.getFieldProps('price')}
+                        />
+                        <span className='flex-none text-[12.5px] text-[#8B94A5]'>تومان</span>
+                    </span>
+                    {formik.touched.price && formik.errors.price && (
+                        <span className='block pt-1.5 text-sm text-red-500'>{formik.errors.price}</span>
+                    )}
+                </label>
+            )}
+
+            {/* Rent Checkbox */}
+            <label className='mt-4 flex cursor-pointer items-center gap-2.5 rounded-[14px] bg-[#FAFBFC] px-3.5 py-3'>
+                <input
+                    type='checkbox'
+                    checked={isRent}
+                    onChange={() => setIsRent(!isRent)}
+                    className='checkbox checkbox-sm border-orange-400 [--chkbg:theme(colors.primary)] [--chkfg:white]'
+                />
+                <span className='text-[14px] text-secondary'>خودرو را اجاره هم می‌دهم</span>
+            </label>
+        </EditStep>
     );
 };
 

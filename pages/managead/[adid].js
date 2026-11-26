@@ -3,7 +3,6 @@ import { getToken, withAuth } from '@/utils/Auth';
 import {
     getCities,
     getMyads,
-    deleteAd,
     getPlans,
     buyPlan
 } from '@/utils/Request';
@@ -12,9 +11,8 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/router';
-import { BackendURL } from '@/utils/URL';
-import Link from 'next/link';
 import { formatPrice } from '@/utils/Cal';
+import { defaultAdImage, resolveAdImage } from '@/utils/adImage';
 
 const LadderIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="24" viewBox="0 0 54 43" fill="none">
@@ -29,8 +27,8 @@ const CitiesIcon = () => (
 );
 
 const FeaturedIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 70 70" fill="none">
-    <path d="M39 14C42.2728 14.0008 45.5 14.7666 48.4243 16.2362C51.3485 17.7057 53.8888 19.8384 55.8425 22.4641C57.7962 25.0898 59.1091 28.1357 59.6765 31.3589C60.244 34.5821 60.0503 37.8933 59.1108 41.0283C58.1713 44.1633 56.5121 47.0353 54.2655 49.4152C52.019 51.7951 49.2473 53.617 46.1716 54.7355C43.0959 55.854 39.8014 56.2382 36.5509 55.8573C33.3004 55.4765 30.1838 54.3412 27.45 52.542V52.5H27.387C23.6273 50.0061 20.7707 46.3676 19.2403 42.1234C17.7099 37.8792 17.587 33.255 18.8899 28.9355C20.1928 24.6161 22.8522 20.831 26.4742 18.141C30.0962 15.451 34.4883 13.999 39 14ZM18.8925 49C19.7722 50.26 20.7592 51.4267 21.8535 52.5H5.75C5.28587 52.5 4.84075 52.6844 4.51256 53.0126C4.18437 53.3408 4 53.7859 4 54.25C4 54.7141 4.18437 55.1592 4.51256 55.4874C4.84075 55.8156 5.28587 56 5.75 56H26.372C30.0894 58.2339 34.3332 59.441 38.6699 59.4979C43.0065 59.5548 47.2805 58.4596 51.0553 56.324C54.8301 54.1884 57.9703 51.0891 60.1553 47.3427C62.3402 43.5963 63.4914 39.337 63.4914 35C63.4914 30.663 62.3402 26.4037 60.1553 22.6573C57.9703 18.9109 54.8301 15.8116 51.0553 13.676C47.2805 11.5404 43.0065 10.4452 38.6699 10.5021C34.3332 10.559 30.0894 11.7661 26.372 14H9.25C8.78587 14 8.34075 14.1844 8.01256 14.5126C7.68437 14.8408 7.5 15.2859 7.5 15.75C7.5 16.2141 7.68437 16.6592 8.01256 16.9874C8.34075 17.3156 8.78587 17.5 9.25 17.5H21.8535C19.5222 19.7788 17.6705 22.5011 16.4076 25.5066C15.1447 28.5121 14.4961 31.74 14.5 35C14.5 38.759 15.347 42.315 16.859 45.5H12.75C12.2859 45.5 11.8408 45.6844 11.5126 46.0126C11.1844 46.3408 11 46.7859 11 47.25C11 47.7141 11.1844 48.1592 11.5126 48.4874C11.8408 48.8156 12.2859 49 12.75 49H18.8925ZM29.1895 27.664C27.6058 29.7819 26.75 32.3555 26.75 35C26.75 37.751 27.66 40.292 29.1895 42.336L32.9695 38.556C32.3345 37.4786 31.9997 36.2507 32 35C32 33.705 32.3535 32.487 32.9695 31.444L29.1895 27.664ZM31.664 25.1895L35.444 28.9695C36.5214 28.3345 37.7493 27.9997 39 28C40.295 28 41.513 28.3535 42.556 28.9695L46.336 25.1895C44.2181 23.6058 41.6445 22.75 39 22.75C36.249 22.75 33.708 23.66 31.664 25.1895ZM48.814 27.664L45.034 31.444C45.6689 32.5217 46.0034 33.7497 46.0028 35.0005C46.0021 36.2512 45.6664 37.479 45.0305 38.556L48.8105 42.336C50.3435 40.292 51.25 37.751 51.25 35C51.25 32.249 50.3435 29.708 48.814 27.664ZM46.3325 44.814L42.5525 41.034C41.4757 41.6672 40.2491 42.0007 39 42C37.705 42 36.487 41.6465 35.444 41.0305L31.664 44.8105C33.708 46.3435 36.249 47.25 39 47.25C41.751 47.25 44.292 46.34 46.336 44.8105M23.25 35C23.25 32.9317 23.6574 30.8836 24.4489 28.9727C25.2404 27.0619 26.4005 25.3256 27.8631 23.8631C29.3256 22.4005 31.0619 21.2404 32.9727 20.4489C34.8836 19.6574 36.9317 19.25 39 19.25C41.0683 19.25 43.1164 19.6574 45.0273 20.4489C46.9381 21.2404 48.6744 22.4005 50.1369 23.8631C51.5995 25.3256 52.7596 27.0619 53.5511 28.9727C54.3426 30.8836 54.75 32.9317 54.75 35C54.75 39.1772 53.0906 43.1832 50.1369 46.1369C47.1832 49.0906 43.1772 50.75 39 50.75C34.8228 50.75 30.8168 49.0906 27.8631 46.1369C24.9094 43.1832 23.25 39.1772 23.25 35ZM35.5 35C35.5 35.9283 35.8687 36.8185 36.5251 37.4749C37.1815 38.1313 38.0717 38.5 39 38.5C39.9283 38.5 40.8185 38.1313 41.4749 37.4749C42.1313 36.8185 42.5 35.9283 42.5 35C42.5 34.0717 42.1313 33.1815 41.4749 32.5251C40.8185 31.8687 39.9283 31.5 39 31.5C38.0717 31.5 37.1815 31.8687 36.5251 32.5251C35.8687 33.1815 35.5 34.0717 35.5 35Z" fill="currentColor" />
+  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round">
+    <path d="M13.2 2 4.8 13.2h5.4L9.6 22l8.6-11.4h-5.6z" />
   </svg>
 );
 
@@ -44,30 +42,30 @@ const ComboIcon = () => (
 const UPGRADE_PLANS = [
   {
     id: 5,
-    matchName: 'نردبان',
-    title: 'پلکان',
-    description: 'آگهیتو بیار بالای دیگر آگهی‌ها',
+    title: 'صدرنشین',
+    description: 'آگهی خود را به صدر فهرست آگهی‌ها بیاورید.',
+    fallbackPrice: 14900,
     Icon: LadderIcon,
   },
   {
     id: 2,
-    matchName: 'تمامی شهر ها',
-    title: 'ثبت آگهی در تمام شهرها',
-    description: 'آگهی شما در کل کشور دیده می‌شود',
+    title: 'سراسری',
+    description: 'نمایش آگهی شما در تمام شهرها',
+    fallbackPrice: 39900,
     Icon: CitiesIcon,
   },
   {
     id: 3,
-    matchName: 'ثبت فوری آگهی',
-    title: 'ثبت سفارشی آگهی',
-    description: 'آگهی خود را از دیگر آگهی‌ها متمایز کنید',
+    title: 'سفارشی',
+    description: 'آگهی خود را با نشان ویژه متمایز کنید.',
+    fallbackPrice: 39900,
     Icon: FeaturedIcon,
   },
   {
     id: 4,
-    matchName: 'کلی',
-    title: 'سفارشی در تمام شهرها',
-    description: 'به بهترین حالت در دولوکس دیده شوید',
+    title: 'سفارشی سراسری',
+    description: 'نمایش آگهی با نشان ویژه در تمام شهرها.',
+    fallbackPrice: 69900,
     Icon: ComboIcon,
   },
 ];
@@ -101,8 +99,6 @@ const ManageAd = ({ cities, ad, token, user }) => {
 
     const [plans, setPlans] = useState([]);
     const [selectedPlanId, setSelectedPlanId] = useState(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deleting, setDeleting] = useState(false);
 
     const activePlanId = ad?.PlanId;
 
@@ -119,17 +115,13 @@ const ManageAd = ({ cities, ad, token, user }) => {
         fetchPlans();
     }, []);
 
-    const getPlanByName = (planName) => {
-        return plans?.find(p =>
-            p.Name?.trim() === planName.trim() ||
-            planName.includes(p.Name?.trim())
-        );
-    };
+    const [image, setImage] = useState(resolveAdImage(ad?.CoverImage, ad));
 
-    const handlePlanSelect = (planName) => {
-        const plan = getPlanByName(planName);
-        if (plan) {
-            setSelectedPlanId(plan.PlanId);
+    const getPlanById = (planId) => (Array.isArray(plans) ? plans : []).find((p) => Number(p.PlanId) === planId);
+
+    const handlePlanSelect = (planId) => {
+        if (getPlanById(planId)) {
+            setSelectedPlanId(planId);
         }
     };
 
@@ -143,31 +135,13 @@ const ManageAd = ({ cities, ad, token, user }) => {
         );
     };
 
-    const checkPlanExistance = (name) => {
-      return plans?.filter(item => item.Name == name).length > 0
-    }
-
     const canBuyPlan = (planId) => {
         if (selectedPlanId !== planId) return false;
-        if (planId === 5) return checkPlanExistance('نردبان');
+        if (planId === 5) return Boolean(getPlanById(5));
         if (planId === 2) return activePlanId !== 2 && activePlanId !== 4;
         if (planId === 3) return activePlanId !== 3 && activePlanId !== 4;
         if (planId === 4) return activePlanId !== 4;
         return false;
-    };
-
-    const handleDelete = async () => {
-        try {
-            setDeleting(true);
-            await deleteAd(token, ad.AdId);
-            toast.success("آگهی با موفقیت حذف شد");
-            setShowDeleteModal(false);
-            router.push("/dashboard");
-        } catch (error) {
-            toast.error("خطا در حذف آگهی");
-        } finally {
-            setDeleting(false);
-        }
     };
 
     const upgradePlan = async (planid) => {
@@ -177,6 +151,9 @@ const ManageAd = ({ cities, ad, token, user }) => {
             setTimeout(() => {
                 router.push(result)
             }, 200);
+        } else {
+            console.error('Invalid payment link from server:', result);
+            toast.error(result || 'لینک پرداخت از سرور دریافت نشد')
         }
     };
 
@@ -185,39 +162,21 @@ const ManageAd = ({ cities, ad, token, user }) => {
             <DashboardPanel user={user} />
 
             <div className='flex h-full w-full flex-col justify-start gap-2 px-4 md:flex-row'>
-                <div className='flex h-fit max-w-screen-lg flex-col rounded-[34px] bg-white p-8 md:max-w-xl'>
-                    <Image
-                        className="rounded-xl object-cover"
-                        src={BackendURL + ad.CoverImage}
-                        width={300}
-                        height={100}
-                        alt="Ad Cover Image"
-                    />
+                <div className='flex h-fit w-full flex-col gap-4 rounded-[34px] bg-white p-5 md:max-w-sm md:p-6'>
+                    <div className='relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#EEF1F5]'>
+                        <Image
+                            className='object-cover'
+                            src={image}
+                            fill
+                            sizes='(max-width:768px) 100vw, 360px'
+                            alt=''
+                            onError={() => setImage(defaultAdImage(ad))}
+                        />
+                    </div>
 
-                    <p className="py-4 text-center text-xl text-secondary">
+                    <p className='font-soft m-0 text-center text-[17px] text-secondary md:text-[19px]'>
                         {ad.Title}
                     </p>
-
-                    <Link
-                        href={`/ad/${ad.En_Title}`}
-                        className="btn mt-2 border-none bg-secondary text-white hover:text-white"
-                    >
-                        مشاهده اگهی
-                    </Link>
-
-                    <Link
-                        href={`/managead/edit/${ad.AdId}`}
-                        className="btn mt-2 border-none bg-[#FCA474] text-white hover:text-white"
-                    >
-                        ویرایش اگهی
-                    </Link>
-
-                    <button
-                        onClick={() => setShowDeleteModal(true)}
-                        className="btn mt-2 border-none bg-primary text-white hover:text-white"
-                    >
-                        حذف اگهی
-                    </button>
                 </div>
 
                 <div className='flex h-fit max-w-screen-lg flex-col rounded-[34px] bg-white p-8 md:max-w-xl'>
@@ -233,12 +192,12 @@ const ManageAd = ({ cities, ad, token, user }) => {
                     </div>
 
                     <div className="mt-5 space-y-3" dir="rtl">
-                        {UPGRADE_PLANS.map(({ id, matchName, title, description, Icon }) => {
-                            const plan = getPlanByName(matchName);
-                            const exists = id === 5 ? checkPlanExistance(matchName) : true;
+                        {UPGRADE_PLANS.map(({ id, title, description, fallbackPrice, Icon }) => {
+                            const plan = getPlanById(id);
+                            const exists = Boolean(plan);
                             const active = isPlanActive(id);
-                            const selected = selectedPlanId === id || selectedPlanId === plan?.PlanId;
-                            const price = plan?.PlanPrice;
+                            const selected = selectedPlanId === id;
+                            const price = plan?.PlanPrice ?? fallbackPrice;
                             const showBuy = canBuyPlan(id);
 
                             return (
@@ -246,10 +205,10 @@ const ManageAd = ({ cities, ad, token, user }) => {
                                     key={id}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => exists && handlePlanSelect(matchName)}
+                                    onClick={() => exists && handlePlanSelect(id)}
                                     onKeyDown={(e) => {
                                         if (exists && (e.key === 'Enter' || e.key === ' ')) {
-                                            handlePlanSelect(matchName);
+                                            handlePlanSelect(id);
                                         }
                                     }}
                                     className={`flex w-full items-center gap-3 rounded-2xl border bg-white p-4 text-right transition sm:gap-4 sm:p-5 ${
@@ -312,33 +271,6 @@ const ManageAd = ({ cities, ad, token, user }) => {
                 </div>
             </div>
 
-            {showDeleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                    <div className="w-80 rounded-2xl bg-white p-6 text-center">
-                        <h3 className="mb-4 text-lg font-bold text-secondary">
-                            آیا مطمئن هستید؟
-                        </h3>
-                        <p className="mb-6 text-sm text-gray-500">
-                            این عملیات قابل بازگشت نیست.
-                        </p>
-                        <div className="flex justify-center gap-4">
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                className="rounded-lg bg-gray-200 px-4 py-2"
-                            >
-                                انصراف
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                disabled={deleting}
-                                className="rounded-lg bg-primary px-4 py-2 text-white"
-                            >
-                                {deleting ? "در حال حذف..." : "بله، حذف شود"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

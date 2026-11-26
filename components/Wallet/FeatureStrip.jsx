@@ -34,7 +34,7 @@ const FeatureStrip = ({ layout }) => {
                         paddingRight: index === 0 ? undefined : layout.featPad
                     }}
                 >
-                    <Icon name={feature.icon} size={26} color="#F4661C" />
+                    <Icon name={feature.icon} size={26} color="#FF5E00" />
                     <span style={{ fontSize: 14.5, fontWeight: 600, color: '#1B1E22' }}>{feature.title}</span>
                     <span style={{ fontSize: 12.5, color: '#8A9096', lineHeight: 1.9 }}>
                         {feature.lines[0]}

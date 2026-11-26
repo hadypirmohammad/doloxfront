@@ -1,15 +1,11 @@
 import { formatPrice } from '@/utils/Cal';
-import { BackendURL } from '@/utils/URL';
+import { resolveAdImage } from '@/utils/adImage';
 import Image from 'next/image';
 import Link from 'next/link';
 
 const DashboardAd = ({ ad }) => {
   const isPending = !ad?.IsActive;
-  const imageSrc = ad?.CoverImage
-    ? ad.CoverImage.startsWith('http') || ad.CoverImage.startsWith('/media')
-      ? ad.CoverImage
-      : `${BackendURL.slice(0, -1)}${ad.CoverImage}`
-    : '/media/images/default-ad.webp';
+  const imageSrc = resolveAdImage(ad?.CoverImage, ad);
 
   return (
     <div className="my-3 overflow-hidden rounded-2xl border border-[#F0F0F0] bg-white shadow-[0_6px_20px_rgba(36, 59, 83,0.05)] transition hover:border-primary/25 hover:shadow-[0_10px_28px_rgba(255,94,0,0.12)]">

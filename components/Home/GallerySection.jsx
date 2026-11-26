@@ -8,7 +8,7 @@ const GallerySection = ({ galleries = [] }) => {
     <section className="bg-[#FAFAFA] px-3 py-8 sm:px-4 sm:py-10">
       <div className="mx-auto max-w-screen-xl">
         <div className="mb-4 flex items-center justify-between sm:mb-6">
-          <h2 className="text-lg text-secondary sm:text-2xl">آخرین اتوگالری ها</h2>
+          <h2 className="text-lg text-secondary sm:text-2xl">آخرین گالری ها</h2>
           <Link href="/autogallery" className="font-['vazir'] text-sm text-primary">
             مشاهده همه
           </Link>

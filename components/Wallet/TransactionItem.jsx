@@ -62,7 +62,7 @@ export const TransactionRow = ({ transaction, columns, showTracking, onOpen }) =
             {showTracking ? (
                 <>
                     <span style={{ fontSize: 12, color: '#6B7280', direction: 'ltr', textAlign: 'right' }}>{transaction.trackingCode}</span>
-                    <span style={{ justifySelf: 'start', fontSize: 12, color: '#F4661C', fontWeight: 500 }}>جزئیات</span>
+                    <span style={{ justifySelf: 'start', fontSize: 12, color: '#FF5E00', fontWeight: 500 }}>جزئیات</span>
                 </>
             ) : null}
         </div>
@@ -159,7 +159,7 @@ export const TransactionCard = ({ transaction, showTracking, onOpen }) => {
                     paddingTop: 9
                 }}
             >
-                <span style={{ fontSize: 12, color: '#F4661C', fontWeight: 500 }}>جزئیات ›</span>
+                <span style={{ fontSize: 12, color: '#FF5E00', fontWeight: 500 }}>جزئیات ›</span>
                 <span style={{ fontSize: 11.5, color: '#9AA0A8', direction: 'ltr' }}>{transaction.trackingCode}</span>
             </div>
         </div>

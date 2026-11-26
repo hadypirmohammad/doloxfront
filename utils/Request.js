@@ -44,7 +44,7 @@ export const getAuctions = async (
     params.append("page", page)
     params.append("count", count)
     if (query) params.append("filter", query);
-    if (cityid) params.append("cityId", cityid);
+    [].concat(cityid || []).filter(Boolean).forEach((id) => params.append("cityIds", id));
     if (categoryid) params.append("categoryId", categoryid);
     if (min !== 10 || max !== 100000 ){
         if (min !== undefined && min !== null) params.append("minC", min);
@@ -67,11 +67,11 @@ export const getAuctions = async (
         if (response.ok) {
             return await response.json();
         } else {
-            throw new Error('Failed to fetch ads, status code: ' + response.status);
+            return [];
         }
     } catch (error) {
         console.error(error);
-        throw error;
+        return [];
     }
 };
 
@@ -237,6 +237,79 @@ export const loginReq = async(phonenumber, password) => {
         });
 };
 
+export const sendLoginOtp = async (phonenumber) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify({ phone: phonenumber }),
+        redirect: 'follow'
+    };
+
+    try {
+        const response = await fetch(BackendURL + 'SendLoginOtp', requestOptions);
+        const text = await response.text();
+
+        if (!response.ok) {
+            if (response.status === 429) {
+                return { error: true, message: "تعداد درخواست زیاد است، کمی بعد دوباره تلاش کنید" };
+            }
+            return { error: true, message: text || "ارسال کد ناموفق بود" };
+        }
+
+        return { error: false };
+    } catch (error) {
+        console.error('Send otp error:', error);
+        return { error: true, message: "ارتباط با سرور برقرار نشد" };
+    }
+};
+
+export const verifyLoginOtp = async (phonenumber, code) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify({ phone: phonenumber, code }),
+        redirect: 'follow'
+    };
+
+    try {
+        const response = await fetch(BackendURL + 'VerifyLoginOtp', requestOptions);
+        const text = await response.text();
+
+        if (!response.ok) {
+            if (response.status === 400 || response.status === 401) {
+                return { error: true, message: "کد وارد شده درست نیست" };
+            }
+            return { error: true, message: text || "ورود ناموفق بود" };
+        }
+
+        let data = null;
+        try {
+            data = text ? JSON.parse(text) : null;
+        } catch {
+            data = null;
+        }
+
+        const token = typeof data === 'string'
+            ? data
+            : data?.token ?? data?.Token ?? data?.accessToken ?? data?.access_token ?? (text && !text.startsWith('{') ? text.replace(/"/g, '') : null);
+
+        if (!token) {
+            return { error: true, message: "پاسخ سرور نامعتبر بود" };
+        }
+
+        return { error: false, token };
+    } catch (error) {
+        console.error('Verify otp error:', error);
+        return { error: true, message: "ارتباط با سرور برقرار نشد" };
+    }
+};
+
 export const forgetpwReq = async (phonenumber) => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -302,13 +375,13 @@ export const getUser = async (token) => {
 
         // Check if response is ok (status in range 200-299)
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            return null;
         }
 
         return await response.json();
     } catch (error) {
         console.error('Error fetching user data:', error);
-        throw error;
+        return null;
     }
 }
 
@@ -339,6 +412,43 @@ export const getUser = async (token) => {
 //     }
 // }
 
+export const linkTelegramAccount = async (token) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`);
+    myHeaders.append("Content-Length", "0");
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    try {
+        const response = await fetch(`${BackendURL}api/telegram/link`, requestOptions);
+        const text = await response.text();
+
+        if (!response.ok) {
+            console.error('telegram/link failed:', response.status, text);
+            return null;
+        }
+
+        let payload = text;
+
+        try {
+            const parsed = JSON.parse(text);
+            payload = typeof parsed === 'string' ? parsed : JSON.stringify(parsed);
+        } catch (error) {
+            payload = text;
+        }
+
+        const match = String(payload).match(/https?:\/\/[^\s"'<>]+/);
+        return match ? match[0] : null;
+    } catch (error) {
+        console.error('Error linking telegram account:', error);
+        return null;
+    }
+}
+
 export const updateUserProfile = async (token,  email, picture, city, first, last, gender ) => {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", `Bearer ${token}`); // Authorization header only
@@ -347,12 +457,19 @@ export const updateUserProfile = async (token,  email, picture, city, first, las
     const formData = new FormData();
 
     // Append fields to the form data
-    formData.append("Name", first);
-    formData.append("GenderId", gender);
-    formData.append("CityId", city);
+    formData.append("FirstName", first);
     formData.append("LastName", last);
-    formData.append("Email", email);
-    if (picture) { 
+
+    if (email) {
+        formData.append("Email", email);
+    }
+    if (Number(city) > 0) {
+        formData.append("CityId", Number(city));
+    }
+    if (Number(gender) > 0) {
+        formData.append("GenderId", Number(gender));
+    }
+    if (picture) {
         formData.append("Image", picture);
     }
 
@@ -368,6 +485,8 @@ export const updateUserProfile = async (token,  email, picture, city, first, las
 
         // Check if response is ok (status in range 200-299)
         if (!response.ok) {
+            const detail = await response.text().catch(() => '');
+            console.error('editUser failed:', response.status, detail);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -528,30 +647,50 @@ export const getSalsByModel = async (model) => {
         // throw error;
     }
 }
-export const getcities = async (model) => {
-    var myHeaders = new Headers();
+let citiesCache = null;
+
+const fetchCityJson = async (path) => {
+    const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
-
-    var requestOptions = {
+    const response = await fetch(`${BackendURL}${path}`, {
         method: 'GET',
         headers: myHeaders,
         redirect: 'follow',
+    });
 
-    };
-
-    try {
-        const response = await fetch(`${BackendURL}GetCities`, requestOptions);
-        // Check if response is ok (status in range 200-299)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        // throw error;
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
+};
+
+export const getcities = async (model) => {
+    if (citiesCache) return citiesCache;
+
+    citiesCache = (async () => {
+        try {
+            const provinces = await fetchCityJson('GetProvinces');
+            const list = Array.isArray(provinces) ? provinces : [];
+
+            const children = await Promise.all(
+                list.map((province) => fetchCityJson(`GetCities/${province.CityId}`).catch(() => []))
+            );
+
+            return list.map((province, index) => ({
+                ...province,
+                ParentId: null,
+                ChildrenCities: Array.isArray(children[index]) ? children[index] : [],
+            }));
+        } catch (error) {
+            console.error(error);
+            citiesCache = null;
+            return [];
+        }
+    })();
+
+    return citiesCache;
 }
 
 export const getAuctionCategories = async () => {
@@ -647,7 +786,7 @@ export const checkAds = async (token) => {
     }
 }
 
-export const getMyads = async (token) => {
+export const getMyads = async (token, pageSize = 200) => {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", `Bearer ${token}`); // Authorization header only
     myHeaders.append("Content-Type", "application/json");
@@ -657,11 +796,13 @@ export const getMyads = async (token) => {
     };
 
     try {
-        const response = await fetch(`${BackendURL}GetMyAds`, requestOptions);
-        return await response.json();
+        const response = await fetch(`${BackendURL}GetMyAds?pageNumber=1&pageSize=${pageSize}`, requestOptions);
+        const data = await response.json();
+        if (Array.isArray(data)) return data;
+        return data?.Queryable ?? data?.Items ?? data?.items ?? [];
     } catch (error) {
         console.error(error);
-        // throw error;
+        return [];
     }
 }
 
@@ -683,7 +824,9 @@ export const createAdReq = async (
     images,
     planid = 1,
     galleryId=-1,
-    chatEnabled = true
+    chatEnabled = true,
+    freeZone = false,
+    bodyTypeId = null
 ) => {
     // console.log( token,
     // brand,
@@ -706,23 +849,30 @@ export const createAdReq = async (
     formdata.append("BrandId", model.BrandId);
     formdata.append("YearId", year.YearId);
     body.forEach(feature => formdata.append("SubFeatureId", feature));
-    formdata.append("Describe", description);
-    formdata.append("Worked", kilometer);
-    formdata.append("Price", price);
+    const isAgreement = price == null || price === '' || Number(price) === 0;
+
+    formdata.append("Describe", description || '');
+    formdata.append("Worked", Number(kilometer) || 0);
+    formdata.append("Price", isAgreement ? 0 : Number(price));
     formdata.append("IsRent", rentorsale);
-    formdata.append("IsAgreement", price == 0);
+    formdata.append("IsAgreement", isAgreement);
     formdata.append("CityId", city );
     formdata.append("IsGest", installments);
-    formdata.append("CoverImage",images[0].file);
-    images.shift() //removes the cover
-    images.forEach(img => formdata.append("Images",img.file ) )
+    const adImages = Array.isArray(images) ? images : [];
+    if (adImages.length) {
+        formdata.append("CoverImage", adImages[0].file);
+        adImages.slice(1).forEach(img => formdata.append("Images", img.file))
+    }
     formdata.append("PlanId", planid);
     formdata.append("En_Title", "default");
     formdata.append("ChatEnabled", chatEnabled ? "true" : "false");
-    if(galleryId != -1 ){
+    formdata.append("IsFreeZone", freeZone ? "true" : "false");
+    if (bodyTypeId) formdata.append("BodyTypeId", bodyTypeId);
+    if (galleryId != null && galleryId !== '' && Number(galleryId) > 0) {
         formdata.append("GalleryId", galleryId);
+        formdata.append("UseFreeAd", "true");
     }
-    
+
     var requestOptions = {
         method: 'POST',
         headers: myHeaders,
@@ -793,30 +943,7 @@ export const getAuctionsByFilter = async (token , auction_type , city ,pagenumbe
 
 
 export const getCities = async (token) => {
-    const myHeaders = new Headers();
-    if (token) {
-        myHeaders.append("Authorization", `Bearer ${token}`);
-    }
-
-    const requestOptions = {
-        method: 'GET', // Changed to GET for fetching user data
-        headers: myHeaders,
-        redirect: 'follow'
-    };
-
-    try {
-        const response = await fetch(`${BackendURL}GetCities`, requestOptions);
-
-        // Check if response is ok (status in range 200-299)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        throw error;
-    }
+    return getcities();
 }
 
 
@@ -827,7 +954,8 @@ export const createAutoGalleryreq = async (
     description,
     address,
     profileimg,
-    coverimg
+    coverimg,
+    details = {}
 ) => {
   
     var myHeaders = new Headers();
@@ -843,6 +971,12 @@ export const createAutoGalleryreq = async (
     if (coverimg) {
         formdata.append("Cover", coverimg);
     }
+    if (details.type) formdata.append("GalleryType", details.type);
+    if (details.manager) formdata.append("ManagerName", details.manager);
+    if (details.cityId) formdata.append("CityId", details.cityId);
+    if (details.mobile) formdata.append("Mobile", details.mobile);
+    if (details.phone) formdata.append("Phone", details.phone);
+    if (details.email) formdata.append("Email", details.email);
 
     var requestOptions = {
         method: 'POST',
@@ -869,6 +1003,7 @@ export const searchAds = async (
     minPrice,
     maxPrice,
     headBrandId,
+    bodyTypeId,
 ) => {
 
     const buildParams = (term) => {
@@ -878,8 +1013,10 @@ export const searchAds = async (
         params.append('Count', count);
 
         if (term) params.append('SearchTerm', term);
-        if (cityId) params.append('CityId', cityId);
-        if (brandId) params.append('BrandId', brandId);
+        const cityIds = Array.isArray(cityId) ? cityId : String(cityId || '').split(',');
+        cityIds.filter(Boolean).forEach((id) => params.append('CityIds', id));
+        [].concat(brandId || []).filter(Boolean).forEach((id) => params.append('BrandIds', id));
+        if (bodyTypeId) params.append('BodyTypeId', bodyTypeId);
         if (minYear) params.append('minYear', minYear);
         if (maxYear) params.append('maxYear', maxYear);
         if (minWorked) params.append('minWorked', minWorked);
@@ -1033,6 +1170,7 @@ export const EditAdReq = async (token,editData) => {
     formdata.append("YearId", editData.ad.YearId);
     formdata.append("CityId", editData.ad.CityId);
     formdata.append("PlanId", editData.ad.PlanId);
+    if (editData.bodyType) formdata.append("BodyTypeId", editData.bodyType);
     formdata.append("En_Title", "vechicle");
     // console.log(editData.images)
     formdata.append("CoverImage", editData.images[0]);
@@ -1121,13 +1259,18 @@ export const getAdbyId = async (id) => {
         const response = await fetch(`${BackendURL}Ad/${id}`, requestOptions);
 
         if (!response.ok) {
-
+            return null;
         }
 
-        return response.json()
+        const text = await response.text();
+        if (!text) {
+            return null;
+        }
+
+        return JSON.parse(text);
     } catch (error) {
         console.error('Error fetching user data:', error);
-        throw error;
+        return null;
     }
 }
 
@@ -1186,7 +1329,7 @@ export const getPlans = async (  id = 0 ) => {
         return response.json()
     } catch (error) {
         console.error('Error fetching user data:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -1203,10 +1346,16 @@ export const getSubscription = async () => {
 
     try {
         const response = await fetch(`${BackendURL}GetSubscribtion`, requestOptions);
-        return response.json()
+
+        if (!response.ok) {
+            return [];
+        }
+
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
     } catch (error) {
         console.error('Error fetching user data:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -1270,7 +1419,14 @@ export const buySubs = async (token, id, discountCode = "") => {
 
     try {
         const response = await fetch(`${BackendURL}PrepareSubscribtion/${id}${query ? `?${query}` : ""}`, requestOptions);
-        return response.text()
+        const text = (await response.text()).trim().replace(/^"|"$/g, "");
+
+        if (!response.ok) {
+            console.error('PrepareSubscribtion failed:', response.status, text);
+            return "";
+        }
+
+        return text;
     } catch (error) {
         console.error('Error fetching user data:', error);
         throw error;
@@ -1291,10 +1447,17 @@ export const getAuctionDetail = async (token , id) => {
 
     try {
         const response = await fetch(`${BackendURL}GetAuction/${id}`, requestOptions);
-        return response.json()
+        const text = await response.text();
+
+        if (!response.ok) {
+            console.error('GetAuction failed:', response.status, text);
+            return { status: response.status, auction: null };
+        }
+
+        return { status: response.status, auction: text ? JSON.parse(text) : null };
     } catch (error) {
-        console.error('Error fetching user data:', error);
-        throw error;
+        console.error('Error fetching auction:', error);
+        return { status: 0, auction: null };
     }
 }
 
@@ -1318,7 +1481,7 @@ export const getAutogalleriesByid = async (id) => {
         }
     } catch (error) {
         console.error(error);
-        throw error;
+        return null;
     }
 };
 
@@ -1350,7 +1513,7 @@ export const getAutogalleriesall = async (page = 1, count = 5) => {
 }
 
 
-export const editGallery = async (token, GalleryId , Describe , Adress , Profile , Cover) => {
+export const editGallery = async (token, GalleryId , Describe , Adress , Profile , Cover , GalleryType = null) => {
     
     var myHeaders = new Headers();
     myHeaders.append("Authorization", `Bearer ${token}`);
@@ -1358,8 +1521,11 @@ export const editGallery = async (token, GalleryId , Describe , Adress , Profile
     var formdata = new FormData();
     // things that can change
     formdata.append("GalleryId", GalleryId);
-    formdata.append("Describe", Describe);
-    formdata.append("Adress", Adress);
+    formdata.append("Describe", Describe || '');
+    formdata.append("Adress", Adress || '');
+if(GalleryType != null && GalleryType !== ''){
+    formdata.append("GalleryType", GalleryType);
+}
 if(Profile){
     formdata.append("Profile", Profile);
 }
@@ -1558,13 +1724,34 @@ export const getChatMessages = async (token, conversationId, page = 1, pageSize 
     }
 };
 
-export const getCarPrices = async ({ page = 1, pageSize = 20, search = '', brandId } = {}) => {
+export const getLatestAds = async (count = 8) => {
+    const response = await fetch(`${BackendURL}LastAd?Count=${Math.max(count * 3, 24)}`, { method: 'GET', redirect: 'follow' });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    
+    const list = Array.isArray(data) ? data : [];
+    return [...list]
+        .sort((a, b) => (Number(b?.AdId) || 0) - (Number(a?.AdId) || 0))
+        .slice(0, count);
+};
+
+export const getBodyTypes = async () => {
+    const response = await fetch(`${BackendURL}GetSearchBar`, { method: 'GET', redirect: 'follow' });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data?.BodyTypes) ? data.BodyTypes : [];
+};
+
+export const getCarPrices = async ({ page = 1, pageSize = 20, search = '', brandId, parentBrandId, rootBrandId, hasPrice } = {}) => {
     const params = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
     });
     if (search) params.set('search', search);
     if (brandId != null && brandId !== '') params.set('brandId', String(brandId));
+    if (parentBrandId != null && parentBrandId !== '') params.set('parentBrandId', String(parentBrandId));
+    if (rootBrandId != null && rootBrandId !== '') params.set('rootBrandId', String(rootBrandId));
+    if (hasPrice) params.set('hasPrice', 'true');
 
     const response = await fetch(`${BackendURL}CarPrices?${params.toString()}`, {
         method: 'GET',
@@ -1675,6 +1862,11 @@ export const prepareWalletDeposit = async (token, amount) => {
 
     const params = new URLSearchParams();
     params.append("amount", amount);
+    if (typeof window !== 'undefined') {
+        params.append("callbackUrl", `${window.location.origin}/payment/result`);
+    } else {
+        params.append("callbackUrl", "https://dolox.ir/payment/result");
+    }
 
     const requestOptions = {
         method: 'GET',
@@ -1683,45 +1875,21 @@ export const prepareWalletDeposit = async (token, amount) => {
     };
 
     try {
-        const response = await fetch(`${BackendURL}PrepareWalletDeposit?${params.toString()}`, requestOptions);
+        const response = await fetch(`${BackendURL}Wallet/Deposit?${params.toString()}`, requestOptions);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const detail = await response.text().catch(() => '');
+            console.error('Wallet deposit failed:', response.status, detail);
+            return "";
         }
 
-        return (await response.text()).trim();
+        return (await response.text()).trim().replace(/^"|"$/g, "");
     } catch (error) {
         console.error(error);
         return "";
     }
 };
 
-export const verifyWalletDeposit = async (token, trackId) => {
-    const myHeaders = new Headers();
-    myHeaders.append("Authorization", `Bearer ${token}`);
-
-    const params = new URLSearchParams();
-    params.append("trackId", trackId ?? "");
-
-    const requestOptions = {
-        method: 'GET',
-        headers: myHeaders,
-        redirect: 'follow'
-    };
-
-    try {
-        const response = await fetch(`${BackendURL}VerifyWalletDeposit?${params.toString()}`, requestOptions);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return (await response.text()).trim();
-    } catch (error) {
-        console.error(error);
-        return "";
-    }
-};
 
 export const checkDiscountCode = async (token, code) => {
     const myHeaders = new Headers();
@@ -1744,7 +1912,13 @@ export const checkDiscountCode = async (token, code) => {
         const text = (await response.text()).trim();
 
         if (!response.ok) {
-            return { valid: false, message: response.status === 404 ? "کد تخفیف معتبر نیست" : text || "کد تخفیف معتبر نیست" };
+            let reason = "";
+            try {
+                reason = JSON.parse(text)?.message || "";
+            } catch {
+                reason = text;
+            }
+            return { valid: false, message: reason || "کد تخفیف معتبر نیست" };
         }
 
         try {
@@ -1758,38 +1932,58 @@ export const checkDiscountCode = async (token, code) => {
     }
 };
 
-export const getTelegramLink = async (token) => {
+export const setFavorite = async (token, type, id, favorite) => {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-
-    if (token) {
-        myHeaders.append("Authorization", `Bearer ${token}`);
-    }
+    myHeaders.append("Authorization", `Bearer ${token}`);
 
     const requestOptions = {
-        method: 'POST',
+        method: favorite ? 'POST' : 'DELETE',
         headers: myHeaders,
-        body: "{}",
+        body: JSON.stringify({ type, id }),
         redirect: 'follow'
     };
 
     try {
-        const response = await fetch(`${BackendURL}api/telegram/link`, requestOptions);
+        const response = await fetch(`${BackendURL}Favorite`, requestOptions);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const text = await response.text().catch(() => '');
+            console.error('Favorite sync failed:', response.status, text);
         }
 
-        const text = (await response.text()).trim();
-
-        try {
-            const data = JSON.parse(text);
-            return data?.link ?? data?.url ?? data?.Link ?? data?.Url ?? "";
-        } catch {
-            return text;
-        }
+        return response.ok;
     } catch (error) {
-        console.error(error);
-        return "";
+        console.error('Failed to update favorite:', error);
+        return false;
+    }
+};
+
+export const getMyFavorites = async (token) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`);
+
+    const requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+
+    try {
+        const response = await fetch(`${BackendURL}GetMyFavorites`, requestOptions);
+
+        if (!response.ok) {
+            return { Galleries: [], Ads: [] };
+        }
+
+        const data = await response.json();
+        return {
+            Galleries: data?.Galleries ?? data?.galleries ?? [],
+            Ads: data?.Ads ?? data?.ads ?? [],
+            Auctions: data?.Auctions ?? data?.auctions ?? [],
+        };
+    } catch (error) {
+        console.error('Failed to fetch favorites:', error);
+        return { Galleries: [], Ads: [] };
     }
 };

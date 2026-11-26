@@ -31,7 +31,7 @@ const DepositForm = ({ limits, onSubmit }) => {
                 <Icon
                     name="account_balance_wallet"
                     size={19}
-                    color="#F4661C"
+                    color="#FF5E00"
                     style={{
                         width: 34,
                         height: 34,
@@ -58,7 +58,7 @@ const DepositForm = ({ limits, onSubmit }) => {
                             cursor: 'pointer',
                             fontSize: 13.5,
                             fontWeight: 600,
-                            border: '1px solid ' + (isPresetActive(index) ? '#F4661C' : '#E6E7EB'),
+                            border: '1px solid ' + (isPresetActive(index) ? '#FF5E00' : '#E6E7EB'),
                             background: isPresetActive(index) ? '#FDEDE3' : '#fff',
                             color: isPresetActive(index) ? '#C9500F' : '#3B3F45'
                         }}
@@ -117,7 +117,7 @@ const DepositForm = ({ limits, onSubmit }) => {
                 onClick={() => onSubmit(activeAmount)}
                 style={{
                     border: 'none',
-                    background: invalid ? '#F1B392' : '#F4661C',
+                    background: invalid ? '#F1B392' : '#FF5E00',
                     color: '#fff',
                     fontSize: 15,
                     fontWeight: 600,

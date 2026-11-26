@@ -6,6 +6,6 @@ export default function handler(req, res) {
     destroyCookie({ res }, 'refresh');
 
     // Redirect to the login page
-    res.writeHead(302, { Location: '/login' });
+    res.writeHead(302, { Location: '/' });
     res.end();
 }

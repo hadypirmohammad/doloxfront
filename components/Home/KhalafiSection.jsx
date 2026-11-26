@@ -47,7 +47,7 @@ const KhalafiSection = () => {
             height="115"
             viewBox="0 0 165 115"
             fill="none"
-            stroke="#F7942F"
+            stroke="#FF5E00"
             strokeWidth="4.5"
             className="pointer-events-none absolute left-0 top-0 h-[55px] w-[78px] sm:h-[52px] sm:w-[74px]"
           >
@@ -60,7 +60,7 @@ const KhalafiSection = () => {
             height="151"
             viewBox="613 370 161 151"
             fill="none"
-            stroke="#F7942F"
+            stroke="#FF5E00"
             strokeWidth="4.5"
             className="pointer-events-none absolute bottom-0 right-0 h-[52px] w-[56px] sm:hidden"
           >
@@ -91,7 +91,7 @@ const KhalafiSection = () => {
 
             <Link
               href="/khalafi"
-              className="order-3 mt-3.5 flex h-11 w-full max-w-[300px] flex-none items-center justify-center gap-3 rounded-full bg-[linear-gradient(180deg,#FFA03E,#F7740A)] text-base text-white shadow-[0_12px_26px_rgba(249,116,10,.3)] transition hover:brightness-105 sm:order-4 sm:mt-0 sm:h-[52px] sm:w-auto sm:px-9 sm:text-lg"
+              className="order-3 mt-3.5 flex h-11 w-full max-w-[300px] flex-none items-center justify-center gap-3 rounded-full bg-gradient-orange text-base text-white shadow-[0_12px_26px_rgba(249,116,10,.3)] transition hover:brightness-105 sm:order-4 sm:mt-0 sm:h-[52px] sm:w-auto sm:px-9 sm:text-lg"
             >
               شروع استعلام
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -105,7 +105,7 @@ const KhalafiSection = () => {
                   {index > 0 && <span className="h-[34px] w-px bg-[#DFE3EA]" />}
                   <div className="w-[66px] text-center sm:w-auto">
                     <span className="mx-auto flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#FDEAD9]">
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F7740A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF5E00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         {feature.icon}
                       </svg>
                     </span>

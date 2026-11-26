@@ -3,52 +3,9 @@ import DesktopAuctionPanel from '@/components/Auction/DesktopAuctionPanel';
 import PhoneAuctionDrawer from '@/components/Auction/PhoneAuctionDrawer';
 import SubscriptionCards from '@/components/Auction/SubscriptionCards';
 import { getToken, withAuth } from '@/utils/Auth';
-import { calculateDaysLeft } from '@/utils/Cal';
+import { hasActiveSubscription } from '@/utils/Cal';
 import { getAuctions, getUser } from '@/utils/Request';
 import React, { useEffect, useState } from 'react'
-
-const GOFTINO_ID = 'wbPuhk'
-
-const loadGoftino = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return
-
-  // Avoid duplicate load if already present
-  if (document.querySelector(`script[src*="goftino.com/widget/${GOFTINO_ID}"]`)) return
-
-  const script = document.createElement('script')
-  script.type = 'text/javascript'
-  script.async = true
-  const cached = localStorage.getItem(`goftino_${GOFTINO_ID}`)
-  script.src = cached
-    ? `https://www.goftino.com/widget/${GOFTINO_ID}?o=${cached}`
-    : `https://www.goftino.com/widget/${GOFTINO_ID}`
-  script.dataset.goftino = GOFTINO_ID
-  document.head.appendChild(script)
-}
-
-const removeGoftino = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return
-
-  try {
-    if (window.Goftino?.destroy) {
-      window.Goftino.destroy()
-    }
-  } catch (error) {
-    console.error('Failed to destroy Goftino widget:', error)
-  }
-
-  document
-    .querySelectorAll(
-      'script[src*="goftino.com"], script[data-goftino], #goftino_w, [id^="goftino"], [class*="goftino"]'
-    )
-    .forEach((el) => el.remove())
-
-  try {
-    delete window.Goftino
-  } catch {
-    window.Goftino = undefined
-  }
-}
 
 export async function getServerSideProps(context) {
   // Use the withAuth function to check authentication
@@ -59,22 +16,18 @@ export async function getServerSideProps(context) {
     return authResult;
   }
 
-  let auctions = []
   const token = await getToken(context);
   const userdata = await getUser(token).catch(() => null);
-  const hasSubscription =
-    userdata?.SubscribtionDate != null &&
-    calculateDaysLeft(userdata.SubscribtionDate) > 0;
+  const hasSubscription = hasActiveSubscription(userdata);
 
-  if (hasSubscription) {
-    auctions = await getAuctions(token).catch(() => [])
-  }
+  const auctions = await getAuctions(token).catch(() => [])
 
   return {
     props: {
       auctions: auctions || [],
       token: token || "",
       hasSubscription: !!hasSubscription,
+      user: userdata ?? null,
     },
   };
 }
@@ -85,7 +38,7 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
     min: 10,
     max: 100000,
   })
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState([]);
   const [page, setPage] = useState(1);
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
@@ -101,7 +54,7 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
     setHasMore(true);
     const token = await getToken();
     const auctions = await getAuctions(token, query, city, category, priceRange.min, priceRange.max, activeAuctions, 1, 10)
-    setauctionsdata(auctions)
+    setauctionsdata(Array.isArray(auctions) ? auctions : [])
   }
 
   const loadMore = async () => {
@@ -121,7 +74,7 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
         10
       );
 
-      if (newAuctions.length === 0) {
+      if (!Array.isArray(newAuctions) || newAuctions.length === 0) {
         setHasMore(false);
       } else {
         setPage(prev => prev + 1);
@@ -159,17 +112,7 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
     updateAuctions();
   }, [query, city, category, priceRange, activeAuctions]);
 
-  useEffect(() => {
-    if (!hasSubscription) return undefined;
-
-    loadGoftino();
-
-    return () => {
-      removeGoftino();
-    };
-  }, [hasSubscription]);
-
-  if (!hasSubscription) return (
+  if (!hasSubscription && !auctionsData.length) return (
     <div className='flex justify-center gap-2 bg-[#FAFAFA] px-3 pt-6 pb-10 md:pt-8'>
       <SubscriptionCards token={token} />
     </div>)
@@ -180,7 +123,9 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
         <DesktopAuctionPanel
           updateAuction={() => updateAuctions()}
           setPriceRange={setPriceRange}
+          city={city}
           setCity={setCity}
+          category={category}
           setCategory={setCategory}
           setQuery={setQuery} query={query}
           setActiveAuctions={setActiveAuctions}
@@ -194,7 +139,9 @@ const Auctions = ({ auctions, token, user, hasSubscription }) => {
           updateAuction={() => updateAuctions()}
           setauctionsdata={setauctionsdata}
           setPriceRange={setPriceRange}
+          city={city}
           setCity={setCity}
+          category={category}
           setCategory={setCategory}
           setQuery={setQuery}
           query={query}

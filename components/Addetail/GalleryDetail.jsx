@@ -12,7 +12,7 @@ const GalleryDetail = (ad) => {
         <div>
 
           <h2 className="text-lg">{data.Name}</h2>
-              <p className='font-[vazir]'>{data.Describe} <span className='font-[vazir] text-[#FA4505]'>اطلاعات بیشتر</span></p>
+              <p className='font-[vazir]'>{data.Describe} <span className='font-[vazir] text-[#FF5E00]'>اطلاعات بیشتر</span></p>
         </div>
 
         

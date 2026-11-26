@@ -125,6 +125,15 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
+const HeaderShell = ({ href, children }) =>
+  href ? (
+    <Link href={href} className={styles.headerMain} aria-label="مشاهده آگهی">
+      {children}
+    </Link>
+  ) : (
+    <div className={styles.headerMain}>{children}</div>
+  );
+
 const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, previewConversations, previewMessages }) => {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -321,7 +330,13 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
   }, [token, userId]);
 
   useEffect(() => {
-    if (!initialReceiverId || !userId) return;
+    if (!initialReceiverId) {
+      setActiveReceiverId(0);
+      setMessages([]);
+      return;
+    }
+
+    if (!userId) return;
 
     if (initialReceiverId === userId) {
       toast.error("نمی‌توانید با خودتان چت کنید");
@@ -401,7 +416,10 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
   }, [activeReceiverId, conversations, markAsSeen, token, userId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const end = messagesEndRef.current;
+    const area = end?.parentElement;
+    if (!area) return;
+    area.scrollTop = area.scrollHeight;
   }, [messages]);
 
   const navigateToReceiver = (receiverId, peerLabel = "") => {
@@ -435,7 +453,7 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
       query.adId = String(adContext.adId);
     }
 
-    router.replace(
+    router.push(
       { pathname: "/dashboard/chat", query },
       undefined,
       { shallow: true },
@@ -458,9 +476,7 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
   };
 
   const handleMobileBack = () => {
-    setActiveReceiverId(0);
-    setMessages([]);
-    router.replace({ pathname: "/dashboard/chat" }, undefined, { shallow: true });
+    router.back();
   };
 
   const visibleConversations = useMemo(() => {
@@ -594,7 +610,7 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
                 </button>
               ) : null}
 
-              <div className={styles.headerMain}>
+              <HeaderShell href={adDetailHref}>
                 <div className={styles.headerTitleBlock}>
                   <div className={styles.headerTitleRow}>
                     <h2 className={styles.headerTitle}>{activePeerLabel}</h2>
@@ -613,12 +629,11 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
                       </span>
                     </div>
                   ) : null}
-                  <span
-                    className={`${styles.headerSubtitle} ${isConnected && !error ? styles.headerOnline : ""}`}
-                  >
-                    {isConnected && !error ? <span className={styles.onlineDot} /> : null}
-                    {error ? error : isConnected ? "آنلاین" : "در حال اتصال..."}
-                  </span>
+                  {error || !isConnected ? (
+                    <span className={styles.headerSubtitle}>
+                      {error ? error : "در حال اتصال..."}
+                    </span>
+                  ) : null}
                 </div>
                 {activeCoverUrl ? (
                   <img
@@ -631,32 +646,10 @@ const ChatPanel = ({ token, userId, initialReceiverId, initialPeerLabel, preview
                     🚗
                   </div>
                 )}
-                {adDetailHref ? (
-                  <Link href={adDetailHref} className={styles.headerLink} aria-label="مشاهده آگهی">
-                    ›
-                  </Link>
-                ) : null}
-              </div>
+              </HeaderShell>
             </div>
 
             <div className={styles.messagesArea}>
-              {activeAdContext ? (
-                <div className={styles.adBanner}>
-                  <span className={styles.adBannerRule} />
-                  {adDetailHref ? (
-                    <Link href={adDetailHref} className={styles.adBannerLink}>
-                      <span className={styles.adBannerText}>{`درباره آگهی ${activePeerLabel}`}</span>
-                      <span aria-hidden="true">‹</span>
-                    </Link>
-                  ) : (
-                    <span className={styles.adBannerLink}>
-                      <span className={styles.adBannerText}>{`درباره آگهی ${activePeerLabel}`}</span>
-                    </span>
-                  )}
-                  <span className={styles.adBannerRule} />
-                </div>
-              ) : null}
-
               {loadingHistory ? (
                 <div className={styles.empty}>در حال بارگذاری پیام‌ها...</div>
               ) : messages.length === 0 ? (

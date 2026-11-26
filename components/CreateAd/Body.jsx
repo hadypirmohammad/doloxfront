@@ -1,45 +1,41 @@
-import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { getBodyFeatures } from "@/utils/Request";
+import BodyTypePicker from "./BodyTypePicker";
 
-const featureIcons = [
-    (
-        <>
-            <path d="M5 16.5h14" />
-            <path d="M6.5 16.5v-4l1.8-4.2A2 2 0 0 1 10.14 7h3.72a2 2 0 0 1 1.84 1.3l1.8 4.2v4" />
-            <path d="M6.5 12.5h11" />
-        </>
-    ),
-    (
-        <>
-            <path d="M5 7.5h14M5 12h14M5 16.5h14" />
-            <circle cx="9" cy="7.5" r="1.6" />
-            <circle cx="15" cy="16.5" r="1.6" />
-        </>
-    ),
-    (
-        <>
-            <circle cx="12" cy="12" r="8" />
-            <path d="M12 4v8l5 2.5" />
-        </>
-    ),
-    (
-        <>
-            <path d="M7 20V9l5-4.5L17 9v11" />
-            <path d="M10 20v-5h4v5" />
-        </>
-    ),
-];
+const TYPED_CATEGORIES = [5, 6, 7];
 
-const Body = ({ step, setStep, model, setBody, setBodyLabels, colors }) => {
+const featureOrder = ['رنگ', 'داخل کابین', 'وضعیت بدنه', 'سلامت بدنه'];
 
+const featureIcons = {
+    'داخل کابین': 'cabin',
+    'رنگ': 'color',
+    'سلامت بدنه': 'heavybody',
+    'وضعیت بدنه': 'body',
+    'سلامت موتور': 'engine',
+    'نوع سوخت': 'fuel',
+    'سلامت شاسی': 'chassis',
+    'گیربکس': 'gearbox',
+};
+
+const iconFor = (name) => {
+    const key = Object.keys(featureIcons).find((item) => String(name || '').includes(item));
+    return `/media/images/features/${featureIcons[key] || 'body'}.webp`;
+};
+
+const Body = ({ step, setStep, model, setBody, setBodyLabels, colors, category, bodyType, setBodyType }) => {
+
+    const needsBodyType = TYPED_CATEGORIES.includes(Number(category?.BrandId));
+    const [bodyTypeError, setBodyTypeError] = useState('');
     const [features, setFeatures] = useState([]);
     const [openId, setOpenId] = useState(null);
     const listRef = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!model?.BrandId) return;
             try {
                 const fetched = await getBodyFeatures(model);
                 setFeatures(Array.isArray(fetched) ? fetched : []);
@@ -49,6 +45,14 @@ const Body = ({ step, setStep, model, setBody, setBodyLabels, colors }) => {
         };
         fetchData();
     }, [model]);
+
+    const sortedFeatures = useMemo(() => {
+        const rank = (name) => {
+            const index = featureOrder.findIndex((item) => String(name || '').includes(item));
+            return index === -1 ? featureOrder.length : index;
+        };
+        return [...features].sort((a, b) => rank(a.FeatureName) - rank(b.FeatureName));
+    }, [features]);
 
     useEffect(() => {
         const handleOutside = (event) => {
@@ -74,6 +78,10 @@ const Body = ({ step, setStep, model, setBody, setBodyLabels, colors }) => {
         validationSchema: Yup.object(dynamicSchema),
 
         onSubmit: (values) => {
+            if (needsBodyType && !bodyType) {
+                setBodyTypeError('نوع را انتخاب کنید');
+                return;
+            }
             const selectedIds = Object.values(values).map(v => Number(v));
 
             setBody(selectedIds); // خروجی فقط id ها
@@ -100,11 +108,23 @@ const Body = ({ step, setStep, model, setBody, setBodyLabels, colors }) => {
                 </div>
                 <p className='m-0 py-3 text-[13px] text-[#98A2B3]'>اطلاعات دقیق‌تر باعث دیده شدن بهتر آگهی شما می‌شود.</p>
 
-                {features.length === 0 ? (
+                {needsBodyType && (
+                    <BodyTypePicker
+                        headBrandId={Number(category?.BrandId)}
+                        value={bodyType}
+                        onChange={(id) => {
+                            setBodyType?.(id);
+                            setBodyTypeError('');
+                        }}
+                        error={bodyTypeError}
+                    />
+                )}
+
+                {sortedFeatures.length === 0 ? (
                     <p className="py-10 text-center font-['vazir'] text-sm text-[#8A8A8A]">ویژگی‌ای برای این خودرو ثبت نشده است</p>
                 ) : (
                     <form onSubmit={formik.handleSubmit} ref={listRef} className='flex flex-col gap-2'>
-                        {features.map((feature, index) => {
+                        {sortedFeatures.map((feature) => {
                             const key = `field_${feature.FeatureId}`;
                             const open = openId === feature.FeatureId;
                             const selected = feature.ChildrenFeatures?.find(
@@ -135,10 +155,14 @@ const Body = ({ step, setStep, model, setBody, setBodyLabels, colors }) => {
                                                 {selected?.FeatureName || 'انتخاب کنید'}
                                             </span>
                                         </span>
-                                        <span className='flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[11px] bg-[#FFEDE3] text-primary'>
-                                            <svg width='19' height='19' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round'>
-                                                {featureIcons[index % featureIcons.length]}
-                                            </svg>
+                                        <span className='flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[12px] bg-[#FFEDE3]'>
+                                            <Image
+                                                src={iconFor(feature.FeatureName)}
+                                                alt=''
+                                                width={128}
+                                                height={128}
+                                                className='h-[26px] w-[26px] object-contain'
+                                            />
                                         </span>
                                     </div>
 

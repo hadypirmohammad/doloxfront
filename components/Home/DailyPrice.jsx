@@ -57,7 +57,7 @@ const DailyPrice = ({ speed = 50 }) => {
       <style jsx global>{`
         .dailyPriceSwiper .swiper-button-next,
         .dailyPriceSwiper .swiper-button-prev {
-          color: #FF6B00 !important;
+          color: #FF5E00 !important;
           background: rgba(255, 255, 255, 0.2);
           width: 40px;
           height: 40px;

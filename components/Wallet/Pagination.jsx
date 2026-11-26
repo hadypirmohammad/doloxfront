@@ -19,8 +19,8 @@ const Pagination = ({ page, perPage, total, onChange }) => {
                 fontWeight: 600,
                 cursor: disabled ? 'default' : 'pointer',
                 padding: '0 10px',
-                border: '1px solid ' + (active ? '#F4661C' : '#E6E7EB'),
-                background: active ? '#F4661C' : '#fff',
+                border: '1px solid ' + (active ? '#FF5E00' : '#E6E7EB'),
+                background: active ? '#FF5E00' : '#fff',
                 color: active ? '#fff' : '#5D636A',
                 opacity: disabled ? 0.5 : 1
             }}

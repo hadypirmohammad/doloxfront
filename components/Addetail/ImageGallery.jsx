@@ -1,21 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { BackendURL } from '@/utils/URL';
+import { defaultAdImage, resolveAdImage } from '@/utils/adImage';
 
-const DEFAULT_AD_IMAGE = '/media/images/default-ad.webp';
-
-const resolveSrc = (path) => {
-  if (!path) return DEFAULT_AD_IMAGE;
-  if (path.startsWith('http') || path.startsWith('/media')) return path;
-  return `${BackendURL.slice(0, -1)}${path}`;
-};
-
-const GalleryImage = ({ src, alt, priority = false }) => {
-  const [imageSrc, setImageSrc] = useState(src || DEFAULT_AD_IMAGE);
+const GalleryImage = ({ src, alt, fallback, priority = false }) => {
+  const [imageSrc, setImageSrc] = useState(src || fallback);
 
   useEffect(() => {
-    setImageSrc(src || DEFAULT_AD_IMAGE);
-  }, [src]);
+    setImageSrc(src || fallback);
+  }, [src, fallback]);
 
   return (
     <Image
@@ -23,11 +15,11 @@ const GalleryImage = ({ src, alt, priority = false }) => {
       alt={alt}
       fill
       priority={priority}
-      className="object-contain object-center"
-      sizes="(max-width: 768px) 280px, 340px"
+      className="object-cover object-center"
+      sizes="(max-width: 768px) 100vw, 640px"
       onError={() => {
-        if (imageSrc !== DEFAULT_AD_IMAGE) {
-          setImageSrc(DEFAULT_AD_IMAGE);
+        if (imageSrc !== fallback) {
+          setImageSrc(fallback);
         }
       }}
     />
@@ -39,21 +31,23 @@ const ImageGallery = ({ ad }) => {
   const [SwiperSlide, setSwiperSlide] = useState(null);
 
   const data = ad;
+  const brandName = data?.Brand || data?.MainBrand || '';
+  const fallback = defaultAdImage(data);
 
   const logos = useMemo(() => {
     const images =
       data?.Images?.map((image) => ({
-        src: resolveSrc(image),
+        src: resolveAdImage(image, data),
         alt: data?.Title || 'تصویر آگهی',
       })) || [];
 
     const cover = data?.CoverImage
-      ? [{ src: resolveSrc(data.CoverImage), alt: data?.Title || 'تصویر آگهی' }]
+      ? [{ src: resolveAdImage(data.CoverImage, data), alt: data?.Title || 'تصویر آگهی' }]
       : [];
 
     const list = [...cover, ...images];
-    return list.length ? list : [{ src: DEFAULT_AD_IMAGE, alt: data?.Title || 'تصویر آگهی' }];
-  }, [data?.CoverImage, data?.Images, data?.Title]);
+    return list.length ? list : [{ src: fallback, alt: data?.Title || 'تصویر آگهی' }];
+  }, [data, fallback]);
 
   useEffect(() => {
     import('swiper/react').then(({ Swiper: S, SwiperSlide: SS }) => {
@@ -63,31 +57,40 @@ const ImageGallery = ({ ad }) => {
     import('swiper/css');
   }, []);
 
-  const frameClass =
-    'relative mx-auto aspect-[3/4] w-full max-w-[280px] overflow-hidden rounded-xl bg-white sm:max-w-[320px] md:max-w-[340px]';
+  const frameClass = 'relative aspect-[4/3] w-full overflow-hidden bg-[#F1F3F7] sm:aspect-[16/10]';
+
+  const brandBadge = brandName ? (
+    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-bold text-secondary shadow-[0_4px_14px_rgba(20,36,63,.18)]">
+      {brandName}
+    </span>
+  ) : null;
 
   return (
-    <section className="mx-auto mb-4 overflow-hidden rounded-2xl bg-white p-3 pb-5 sm:mb-0 sm:p-4 md:mb-0">
-      {Swiper && SwiperSlide ? (
-        <Swiper
-          spaceBetween={0}
-          slidesPerView={1}
-          loop={logos.length > 1}
-          className="ad-detail-gallery w-full"
-        >
-          {logos.map((logo, index) => (
-            <SwiperSlide key={`ad-image-${index}-${logo.src}`}>
-              <div className={frameClass}>
-                <GalleryImage src={logo.src} alt={logo.alt} priority={index === 0} />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      ) : (
-        <div className={frameClass}>
-          <GalleryImage src={logos[0].src} alt={logos[0].alt} priority />
-        </div>
-      )}
+    <section className="mx-auto mb-4 overflow-hidden rounded-2xl bg-white sm:mb-0">
+      <div className="relative">
+        {Swiper && SwiperSlide ? (
+          <Swiper
+            spaceBetween={0}
+            slidesPerView={1}
+            loop={logos.length > 1}
+            className="ad-detail-gallery w-full"
+          >
+            {logos.map((logo, index) => (
+              <SwiperSlide key={`ad-image-${index}-${logo.src}`}>
+                <div className={frameClass}>
+                  <GalleryImage src={logo.src} alt={logo.alt} fallback={fallback} priority={index === 0} />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className={frameClass}>
+            <GalleryImage src={logos[0].src} alt={logos[0].alt} fallback={fallback} priority />
+          </div>
+        )}
+
+        {brandBadge}
+      </div>
     </section>
   );
 };

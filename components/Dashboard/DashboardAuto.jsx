@@ -15,7 +15,7 @@ const DashboardAuto = ({ auto }) => {
       <div className="flex flex-col md:flex-row md:items-stretch">
         <div className="flex min-w-0 flex-1 items-center gap-3 p-3 sm:gap-4 sm:p-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[#F5F5F5] sm:h-24 sm:w-24">
-            <Image src={imageSrc} alt={auto?.Name || 'اتوگالری'} fill className="object-cover" sizes="96px" />
+            <Image src={imageSrc} alt={auto?.Name || 'گالری'} fill className="object-cover" sizes="96px" />
           </div>
 
           <div className="min-w-0 flex-1 text-right">
@@ -52,7 +52,7 @@ const DashboardAuto = ({ auto }) => {
                 href={`/manageauto/${auto.GalleryId}`}
                 className="flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm text-white transition hover:opacity-90"
               >
-                مدیریت اتوگالری
+                مدیریت گالری
               </Link>
             </>
           )}

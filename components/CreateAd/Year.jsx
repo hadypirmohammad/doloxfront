@@ -10,6 +10,7 @@ const Year = ({ step, setStep, setYear, model }) => {
 
     useEffect(() => {
         const fetchModels = async () => {
+            if (!model?.BrandId) return;
 
             try {
                 const fetchedModel = await getSalsByModel(model);

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import EditStep from './EditStep';
 
 const Description = ({
     step,
@@ -52,7 +53,6 @@ const Description = ({
                     : values.kilometer || 0;
 
             setKilometer(finalKilometer);
-            console.log(values.description, finalKilometer);
 
             setStep(3);
         },
@@ -61,121 +61,69 @@ const Description = ({
     if (step !== 2) return null;
 
     return (
-        <div>
-            <div className='px-2 md:px-0 [&_*]:!font-["vazir"]'>
-                <div dir='rtl' className='py-2 md:w-96 mx-auto px-4'>
+        <EditStep
+            title='توضیحات و کارکرد'
+            hint='در توضیحات به نکات چشم‌گیر خودرو اشاره کنید.'
+            onPrev={() => setStep(step - 1)}
+            onNext={formik.handleSubmit}
+        >
+            {/* Description */}
+            <textarea
+                className='h-36 w-full resize-none rounded-[14px] border border-[#E7EBF1] bg-[#FAFBFC] p-3.5 text-[14px] leading-[1.9] text-secondary outline-none focus:border-primary'
+                placeholder='توضیحات'
+                {...formik.getFieldProps('description')}
+            />
+            {formik.touched.description && formik.errors.description && (
+                <div className='pt-1.5 text-sm text-red-500'>{formik.errors.description}</div>
+            )}
 
-                    {/* Buttons */}
-                    <div dir='ltr' className='justify-between w-full flex items-center'>
-                        <button
-                            type='button'
-                            className='btn btn-sm bg-primary text-white border-none'
-                            onClick={formik.handleSubmit}
-                        >
-                            ادامه
-                        </button>
-
-                        <button
-                            type='button'
-                            className='btn-sm text-primary bg-transparent shadow-none border-none'
-                            onClick={() => setStep(step - 1)}
-                        >
-                            قبلی
-                        </button>
-                    </div>
-
-                    {/* Description */}
-                    <label className="form-control">
-                        <div className="label">
-                            <span className="label-text">
-                                در توضیحات به نکات چشم گیر اشاره کنید
-                            </span>
-                        </div>
-
-                        <textarea
-                            className="textarea textarea-bordered h-36 bg-base-200 focus:outline-primary text-black w-full"
-                            placeholder="توضیحات"
-                            {...formik.getFieldProps('description')}
-                        />
-
-                        {formik.touched.description &&
-                            formik.errors.description && (
-                                <div className="text-red-500 text-sm">
-                                    {formik.errors.description}
-                                </div>
-                            )}
-                    </label>
-
-                    {/* Status */}
-                    <div className="form-control w-full mt-4">
-                        <div className="flex">
-                            <label className="flex items-center ml-4">
-                                <input
-                                    type="radio"
-                                    name="status"
-                                    value="صفر"
-                                    className="radio"
-                                    onChange={formik.handleChange}
-                                    checked={formik.values.status === 'صفر'}
-                                />
-                                <span className="mr-2">صفر</span>
-                            </label>
-
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="status"
-                                    value="کارکرده"
-                                    className="radio"
-                                    onChange={formik.handleChange}
-                                    checked={formik.values.status === 'کارکرده'}
-                                />
-                                <span className="mr-2">کارکرده</span>
-                            </label>
-                        </div>
-
-                        {/* Kilometer Field */}
-                        {formik.values.status === 'کارکرده' && (
-                            <label className="form-control w-full relative">
-                                <div className="label">
-                                    <span className="label-text">
-                                        کارکرد
-                                    </span>
-                                </div>
-
-                                <input
-                                    dir="ltr"
-                                    type="number"
-                                    placeholder="200000"
-                                    className="input focus:outline-primary border-none w-full bg-base-200"
-                                    {...formik.getFieldProps('kilometer')}
-                                    onBlur={(e) => {
-                                        const value = e.target.value;
-                                        formik.setFieldValue(
-                                            'kilometer',
-                                            value
-                                                ? parseInt(value, 10)
-                                                : ''
-                                        );
-                                    }}
-                                />
-
-                                {formik.touched.kilometer &&
-                                    formik.errors.kilometer && (
-                                        <div className="text-red-500 text-sm">
-                                            {formik.errors.kilometer}
-                                        </div>
-                                    )}
-
-                                <span className='absolute top-12 right-6'>
-                                    کیلومتر
-                                </span>
-                            </label>
-                        )}
-                    </div>
-                </div>
+            {/* Status */}
+            <div className='mt-4 grid grid-cols-2 gap-2'>
+                {['صفر', 'کارکرده'].map((item) => (
+                    <button
+                        key={item}
+                        type='button'
+                        onClick={() => formik.setFieldValue('status', item)}
+                        className={`h-11 rounded-[12px] border text-[14px] font-bold transition-colors ${
+                            formik.values.status === item
+                                ? 'border-primary bg-[#FFF3EA] text-primary'
+                                : 'border-[#E7EBF1] bg-white text-[#42536B]'
+                        }`}
+                    >
+                        {item}
+                    </button>
+                ))}
             </div>
-        </div>
+
+            {/* Kilometer Field */}
+            {formik.values.status === 'کارکرده' && (
+                <label className='mt-4 block'>
+                    <span className='block pb-1.5 text-[13.5px] font-bold text-secondary'>کارکرد</span>
+                    <span className='flex h-12 items-center gap-2 rounded-[14px] border border-[#E7EBF1] bg-[#FAFBFC] px-3.5 focus-within:border-primary'>
+                        <input
+                            dir='ltr'
+                            type='number'
+                            placeholder='200000'
+                            className='h-full w-full bg-transparent text-[14px] text-secondary outline-none'
+                            {...formik.getFieldProps('kilometer')}
+                            onBlur={(e) => {
+                                const value = e.target.value;
+                                formik.setFieldValue(
+                                    'kilometer',
+                                    value
+                                        ? parseInt(value, 10)
+                                        : ''
+                                );
+                            }}
+                        />
+                        <span className='flex-none text-[12.5px] text-[#8B94A5]'>کیلومتر</span>
+                    </span>
+                    {formik.touched.kilometer && formik.errors.kilometer && (
+                        <span className='block pt-1.5 text-sm text-red-500'>{formik.errors.kilometer}</span>
+                    )}
+                </label>
+            )}
+        </EditStep>
     );
 };
 

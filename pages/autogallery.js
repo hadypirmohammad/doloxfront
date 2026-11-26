@@ -1,6 +1,10 @@
+import Image from 'next/image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import AutoItem from '../components/global/AutoItem'
+import GalleryFilterBar from '@/components/AutoGallery/GalleryFilterBar'
 import { searchAutoGalleries } from '@/utils/services/autoGalleries'
+import { getcities } from '@/utils/Request'
+import { toPersianDigits } from '@/utils/Cal'
 
 const PAGE_SIZE = 12
 
@@ -42,19 +46,26 @@ const Autogallery = ({ initialData }) => {
   )
   const [totalCount, setTotalCount] = useState(initialData?.TotalCount || 0)
 
+  const [cities, setCities] = useState([])
   const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState({ search: '', type: '', city: null, status: '' })
 
   const loaderRef = useRef(null)
   const requestIdRef = useRef(0)
   const isFirstFilterRun = useRef(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput.trim())
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    const fetchCities = async () => {
+      try {
+        const result = await getcities()
+        setCities(result || [])
+      } catch (error) {
+        setCities([])
+      }
+    }
+
+    fetchCities()
+  }, [])
 
   const applyFilters = useCallback(async () => {
     if (isFirstFilterRun.current) {
@@ -67,7 +78,11 @@ const Autogallery = ({ initialData }) => {
 
     try {
       const data = await searchAutoGalleries({
-        search,
+        search: filters.search,
+        type: filters.type,
+        status: filters.status,
+        cityId: filters.city?.CityId || null,
+        cityName: filters.city?.CityName || null,
         page: 1,
         pageSize: PAGE_SIZE,
       })
@@ -85,7 +100,7 @@ const Autogallery = ({ initialData }) => {
         setFiltering(false)
       }
     }
-  }, [search])
+  }, [filters])
 
   useEffect(() => {
     applyFilters()
@@ -98,7 +113,11 @@ const Autogallery = ({ initialData }) => {
       setLoading(true)
 
       const data = await searchAutoGalleries({
-        search,
+        search: filters.search,
+        type: filters.type,
+        status: filters.status,
+        cityId: filters.city?.CityId || null,
+        cityName: filters.city?.CityName || null,
         page,
         pageSize: PAGE_SIZE,
       })
@@ -116,7 +135,7 @@ const Autogallery = ({ initialData }) => {
     } finally {
       setLoading(false)
     }
-  }, [loading, filtering, hasMore, search, page])
+  }, [loading, filtering, hasMore, filters, page])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -143,82 +162,80 @@ const Autogallery = ({ initialData }) => {
     }
   }, [loadMore])
 
-  const clearSearch = () => {
-    setSearchInput('')
-    setSearch('')
+  const runSearch = (next) => {
+    setFilters({
+      search: searchInput.trim(),
+      type: next?.type ?? filters.type,
+      city: next?.city !== undefined ? next.city : filters.city,
+      status: next?.status ?? filters.status,
+    })
   }
 
   return (
-    <div className='w-full mx-auto justify-center max-w-screen-xl gap-4 md:flex' dir='rtl'>
-      <div className='relative min-h-[500px] rounded-[15px] bg-white pt-6 md:w-full md:pt-8'>
-        <h1 className='text-center text-2xl mt-4'>اتو گالری ها</h1>
-
-        <div className='px-4 pt-6 max-w-3xl mx-auto'>
-          <div className='relative overflow-hidden rounded-[28px] p-[2px] bg-gradient-to-l from-primary via-[#ff7a3d] to-secondary shadow-[0_12px_30px_rgba(250,69,5,0.18)]'>
-            <div className='rounded-[26px] bg-gradient-to-br from-[#fff7f3] via-white to-[#fff0f0] p-4 md:p-5'>
-              <div className='flex items-center gap-2 mb-4'>
-                <span className='inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/30'>
-                  <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
-                    <circle cx='11' cy='11' r='7' />
-                    <path d='m21 21-4.3-4.3' />
-                  </svg>
-                </span>
-                <div>
-                  <p className='font-bold text-accent text-sm md:text-base'>جستجو گالری‌ها</p>
-                  <p className='font-["vazir"] text-xs text-base-content/60'>نام یا آدرس گالری را وارد کنید</p>
-                </div>
-              </div>
-
-              <div className='flex flex-col md:flex-row gap-3 items-stretch md:items-end'>
-                <label className='form-control w-full font-["vazir"]'>
-                  <div className='label py-1'>
-                    <span className='label-text text-sm font-bold text-secondary'>جستجو</span>
-                  </div>
-                  <input
-                    type='text'
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder='نام گالری، آدرس...'
-                    className='input border-2 border-primary/20 bg-white focus:outline-none focus:border-primary w-full rounded-xl'
-                  />
-                </label>
-
-                {search && (
-                  <button
-                    type='button'
-                    onClick={clearSearch}
-                    className='btn bg-secondary hover:bg-primary border-none text-white font-["vazir"] rounded-xl shadow-md shadow-secondary/25'
-                  >
-                    پاک کردن
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className='flex justify-center mt-4'>
-            <span className='font-["vazir"] text-sm px-4 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20'>
-              {filtering ? 'در حال جستجو...' : `${totalCount} گالری پیدا شد`}
-            </span>
-          </div>
-        </div>
-
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 p-4'>
-          {!filtering &&
-            autos.map((auto) => <AutoItem key={auto.GalleryId} auto={auto} />)}
-        </div>
-
-        {!filtering && autos.length === 0 && (
-          <p className='text-center font-["vazir"] py-16 text-base-content/60'>
-            گالری‌ای پیدا نشد
+    <div dir='rtl' className='min-h-screen bg-[#F5F6F8] text-secondary'>
+      <section className='relative overflow-hidden bg-[#121820]'>
+        <Image
+          src='/media/images/gallery-hero.webp'
+          alt=''
+          fill
+          priority
+          sizes='100vw'
+          className='object-cover object-center'
+        />
+        <span className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(10,14,20,.55)_0%,rgba(10,14,20,.2)_60%,rgba(10,14,20,0)_100%)]' />
+        <div className='relative mx-auto hidden max-w-screen-xl px-4 pb-28 pt-14 sm:block sm:px-6'>
+          <span className='block h-1 w-12 rounded-full bg-primary' />
+          <h1 className='m-0 pt-4 text-[38px] font-bold leading-[1.4] text-white'>
+            <span className='text-primary'>گالری‌ها</span>
+          </h1>
+          <p className='m-0 max-w-md pt-3 text-[15px] leading-[2] text-[#C8D0DA]'>
+            دسترسی سریع به گالری‌های معتبر خودرو و موتور سیکلت در سراسر کشور.
           </p>
+        </div>
+        <div className='h-[130px] sm:hidden' />
+      </section>
+
+      <div className='relative z-10 mx-auto -mt-16 max-w-screen-xl px-4 sm:px-6'>
+        <GalleryFilterBar
+          cities={cities}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          filters={filters}
+          onApply={runSearch}
+        />
+
+        <div className='flex items-center justify-between gap-3 pt-7'>
+          <p className='m-0 text-[15px] font-bold sm:text-[17px]'>
+            {filtering ? 'در حال جستجو...' : `${toPersianDigits(totalCount)} گالری پیدا شد`}
+          </p>
+        </div>
+
+        <div className='grid grid-cols-1 gap-4 pt-4 lg:grid-cols-2'>
+          {!filtering && autos.map((auto) => <AutoItem key={auto.GalleryId} auto={auto} />)}
+        </div>
+
+        {filtering && (
+          <div className='flex justify-center py-16'>
+            <span className='loading loading-spinner loading-md text-primary' />
+          </div>
         )}
 
-        <div ref={loaderRef} className='flex justify-center items-center py-6'>
-          {loading && <p className='font-["vazir"]'>در حال بارگذاری...</p>}
+        {!filtering && autos.length === 0 && (
+          <div className='flex flex-col items-center gap-3 py-20 text-center'>
+            <span className='flex h-[54px] w-[54px] items-center justify-center rounded-full bg-[#FFEDE3] text-primary'>
+              <svg width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round'>
+                <circle cx='11' cy='11' r='7' />
+                <path d='m21 21-4.3-4.3' />
+              </svg>
+            </span>
+            <p className='m-0 text-sm text-[#8B94A5]'>گالری‌ای با این مشخصات پیدا نشد</p>
+          </div>
+        )}
 
+        <div ref={loaderRef} className='flex items-center justify-center py-8'>
+          {loading && <span className='loading loading-spinner loading-md text-primary' />}
           {!hasMore && autos.length > 0 && !filtering && (
-            <p className='font-["vazir"]'>همه موارد بارگذاری شدند.</p>
+            <p className='m-0 text-[13px] text-[#8B94A5]'>همه گالری‌ها نمایش داده شد</p>
           )}
         </div>
       </div>

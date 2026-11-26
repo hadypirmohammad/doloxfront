@@ -292,7 +292,7 @@ const KhalafiPage = () => {
             <button
               type='submit'
               disabled={loading}
-              className='mt-1 flex h-14 w-full items-center justify-center gap-3.5 rounded-[14px] bg-gradient-to-l from-[#ff7d1a] to-[#f75f00] text-base font-bold text-white transition hover:brightness-105 disabled:opacity-60 md:col-span-2'
+              className='mt-1 flex h-14 w-full items-center justify-center gap-3.5 rounded-[14px] bg-gradient-to-l from-[#ff7d1a] to-[#FF5E00] text-base font-bold text-white transition hover:brightness-105 disabled:opacity-60 md:col-span-2'
             >
               {loading ? (
                 <span className='loading loading-spinner loading-sm' />

@@ -1,8 +1,8 @@
-import DashboardPanel from '@/components/global/DashboardPanel'
 import { PREVIEW_WITHOUT_LOGIN, getToken, withAuth } from '@/utils/Auth';
 import { mockProfile } from '@/utils/services/preview.mock';
 
-import { getProfile, getUser, updateUserProfile, getCities} from '@/utils/Request';
+import { getProfile, getUser, linkTelegramAccount, updateUserProfile, getCities} from '@/utils/Request';
+import { hasActiveSubscription, pickField } from '@/utils/Cal';
 import { useFormik } from 'formik';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
@@ -12,6 +12,8 @@ import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { Router, useRouter } from 'next/router';
 import { BackendURL } from '@/utils/URL';
+import { toPersianDigits } from '@/utils/Cal';
+import { destroyCookie } from 'nookies';
 
 
 export async function getServerSideProps(context) {
@@ -53,8 +55,8 @@ const PersonIcon = ({ size = 19 }) => (
 
 const ACCOUNT_ROWS = [
   {
-    label: 'اتوگالری من',
-    href: '/dashboard/auto',
+    label: 'گالری من',
+    href: '/dashboard/gallery',
     icon: (
       <>
         <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
@@ -112,12 +114,13 @@ const ACCOUNT_ROWS = [
   },
   {
     label: 'علاقمندی ها',
-    href: null,
+    href: '/favorites',
     icon: <path d="M12 20s-7.4-4.3-7.4-9.2A4.1 4.1 0 0 1 12 8.3a4.1 4.1 0 0 1 7.4 2.5C19.4 15.7 12 20 12 20z" />,
   },
   {
     label: 'خبرنامه',
-    href: null,
+    href: 'https://blog.dolox.ir',
+    external: true,
     icon: (
       <>
         <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
@@ -147,7 +150,8 @@ const ACCOUNT_ROWS = [
   },
   {
     label: 'پشتیبانی',
-    href: '/dashboard/chat',
+    href: 'https://wa.me/989139777207',
+    external: true,
     icon: (
       <>
         <path d="M5 13v-1a7 7 0 0 1 14 0v1" />
@@ -179,12 +183,27 @@ const RowIcon = ({ children }) => (
 const Profile = ({ cities, profileData, token, user }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const avatarSrc = resolveAvatarSrc(profileData?.UserAvatar);
+  const [linkingTelegram, setLinkingTelegram] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const avatarSrc = avatarPreview || resolveAvatarSrc(pickField(profileData, ['UserAvatar', 'Avatar']));
+  const phoneNumber =
+    pickField(profileData, ['PhoneNumber', 'Phone', 'Mobile']) ||
+    pickField(user, ['PhoneNumber', 'Phone', 'Mobile']) ||
+    '';
+
+  const handleLogout = async () => {
+    destroyCookie(null, 'access');
+    destroyCookie(null, 'refresh');
+    await fetch('/api/logout', { method: 'POST' });
+    await router.push('/');
+    router.reload();
+  };
 
   const formik = useFormik({
     initialValues: {
-      firstName: profileData?.FirstName || '',
-      lastName: profileData?.LastName || '',
+      firstName: pickField(profileData, ['Name', 'FirstName']) || '',
+      lastName: pickField(profileData, ['LastName', 'Family', 'FamilyName']) || '',
     },
     validationSchema: Yup.object({
       firstName: Yup.string().required('نام الزامی است'),
@@ -195,12 +214,12 @@ const Profile = ({ cities, profileData, token, user }) => {
 
       const result = await updateUserProfile(
         token,
-        profileData?.Email || '',
-        '',
-        profileData?.CityId || '',
+        pickField(profileData, ['Email']) || '',
+        avatarFile,
+        pickField(profileData, ['CityId']) || '',
         values.firstName,
         values.lastName,
-        profileData?.GenderId || '',
+        pickField(profileData, ['GenderId']) || '',
       )
 
       if (result.status == 200) {
@@ -214,23 +233,66 @@ const Profile = ({ cities, profileData, token, user }) => {
     },
   });
 
-  const hasChanges = JSON.stringify(formik.values) !== JSON.stringify(formik.initialValues);
+  const hasChanges =
+    JSON.stringify(formik.values) !== JSON.stringify(formik.initialValues) || Boolean(avatarFile);
+
+  const pickAvatar = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('فقط فایل تصویری مجاز است');
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('حجم تصویر باید کمتر از ۳ مگابایت باشد');
+      return;
+    }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const telegramConnected = Boolean(pickField(profileData, ['TelegramId']));
+  const telegramAllowed = hasActiveSubscription(profileData);
+
+  const openTelegram = async () => {
+    if (linkingTelegram) return;
+
+    setLinkingTelegram(true);
+    const link = await linkTelegramAccount(token);
+    setLinkingTelegram(false);
+
+    if (!link) {
+      toast.error('دریافت لینک ربات تلگرام ناموفق بود، دوباره تلاش کنید');
+      return;
+    }
+
+    window.location.href = link;
+  };
 
   return (
-    <div dir="rtl" className='flex w-full justify-start gap-4 bg-[#eff2f7] px-4 pb-10 pt-6 md:pt-8'>
-      <DashboardPanel  user={user}/>
-      <div className='h-full w-full min-w-0'>
-        <div className='flex h-fit w-full max-w-screen-lg flex-col gap-5 rounded-[22px] bg-white p-5 shadow-[0_10px_30px_rgba(17,28,46,0.05)] sm:p-7'>
+    <div dir="rtl" className='flex w-full justify-center gap-4 bg-[#eff2f7] px-4 pb-10 pt-6 md:pt-8'>
+      <div className='h-full w-full min-w-0 max-w-screen-lg'>
+        <div className='flex h-fit w-full flex-col gap-5 rounded-[22px] bg-white p-5 shadow-[0_10px_30px_rgba(17,28,46,0.05)] sm:p-7'>
           <div className='flex flex-row-reverse items-center gap-4'>
-            <label className='relative flex h-[104px] w-[104px] flex-none cursor-default items-end justify-center overflow-hidden rounded-full bg-[#fdf0e6]'>
+            <label className='group relative flex h-[104px] w-[104px] flex-none cursor-pointer items-end justify-center overflow-hidden rounded-full bg-[#fdf0e6]'>
+              <input type='file' accept='image/*' onChange={pickAvatar} className='hidden' />
               {avatarSrc ? (
-                <Image src={avatarSrc} width={200} height={200} alt='profile' className='h-full w-full object-cover' />
+                <Image src={avatarSrc} width={200} height={200} alt='profile' className='h-full w-full object-cover' unoptimized={Boolean(avatarPreview)} />
               ) : (
                 <svg width="72%" height="78%" viewBox="0 0 24 22" fill="#FF5E00">
                   <circle cx="12" cy="6.4" r="5.4" />
                   <path d="M1.6 22c.9-5.4 5.2-8.4 10.4-8.4S21.5 16.6 22.4 22z" />
                 </svg>
               )}
+              <span className='absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/55 py-1.5 text-[11px] font-bold text-white'>
+                <svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M4 19h16M12 15V4M7.5 8.5 12 4l4.5 4.5' />
+                </svg>
+                تغییر
+              </span>
             </label>
             <div className='flex min-w-0 flex-1 flex-col items-start gap-1.5'>
               <h1 className='m-0 text-[22px] font-bold text-[#111c2e]'>مشخصات کاربری</h1>
@@ -318,15 +380,25 @@ const Profile = ({ cities, profileData, token, user }) => {
             </svg>
             <div className='flex min-w-0 flex-1 flex-col items-start gap-1'>
               <span className='text-[15px] font-bold text-[#111c2e]'>وضعیت حساب</span>
-              <span className='text-[12.5px] text-[#2fa855]'>حساب شما فعال و تأیید شده است</span>
+              {phoneNumber ? (
+                <span className='text-[12.5px] leading-[1.9] text-[#2fa855]'>
+                  ورود شما با شماره <span dir='ltr' className='font-bold'>{toPersianDigits(phoneNumber)}</span> تأیید شد
+                </span>
+              ) : (
+                <span className='text-[12.5px] text-[#2fa855]'>حساب شما فعال و تأیید شده است</span>
+              )}
             </div>
-            <span className='flex-none text-xl leading-none text-[#9aa2ab]'>‹</span>
           </div>
 
           <nav className='flex flex-col gap-2.5'>
             {ACCOUNT_ROWS.map((row) =>
               row.href ? (
-                <Link key={row.label} href={row.href} className={`${rowClass} hover:border-primary hover:bg-[#fffaf7]`}>
+                <Link
+                  key={row.label}
+                  href={row.href}
+                  className={`${rowClass} hover:border-primary hover:bg-[#fffaf7]`}
+                  {...(row.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
                   <RowIcon>{row.icon}</RowIcon>
                   <span className='min-w-0 flex-1 text-[15px] font-medium text-[#111c2e]'>{row.label}</span>
                   <span className='flex-none text-xl leading-none text-[#9aa2ab]'>‹</span>
@@ -339,6 +411,56 @@ const Profile = ({ cities, profileData, token, user }) => {
                 </div>
               )
             )}
+
+            {telegramAllowed ? (
+              <button
+                type='button'
+                onClick={openTelegram}
+                disabled={linkingTelegram}
+                className={`${rowClass} hover:border-primary hover:bg-[#fffaf7] disabled:opacity-60`}
+              >
+                <RowIcon>
+                  <path d='M21.5 4.5 2.8 11.3c-.9.3-.9 1.6 0 1.9l4.7 1.5 1.8 5.1c.3.8 1.3 1 1.9.4l2.5-2.4 4.6 3.4c.7.5 1.7.1 1.9-.7l3-14.3c.2-.9-.7-1.6-1.7-1.2z' />
+                  <path d='m7.5 14.7 9.8-7.4-7.9 8.4' />
+                </RowIcon>
+                <span className='min-w-0 flex-1 text-right text-[15px] font-medium text-[#111c2e]'>
+                  {telegramConnected ? 'ربات تلگرام (متصل)' : 'اتصال به ربات تلگرام'}
+                </span>
+                <span className='flex-none text-xl leading-none text-[#9aa2ab]'>
+                  {linkingTelegram ? <span className='loading loading-spinner loading-xs' /> : '‹'}
+                </span>
+              </button>
+            ) : (
+              <Link href='/auctions/subscription' className={`${rowClass} hover:border-primary hover:bg-[#fffaf7]`}>
+                <RowIcon>
+                  <path d='M21.5 4.5 2.8 11.3c-.9.3-.9 1.6 0 1.9l4.7 1.5 1.8 5.1c.3.8 1.3 1 1.9.4l2.5-2.4 4.6 3.4c.7.5 1.7.1 1.9-.7l3-14.3c.2-.9-.7-1.6-1.7-1.2z' />
+                  <path d='m7.5 14.7 9.8-7.4-7.9 8.4' />
+                </RowIcon>
+                <span className='min-w-0 flex-1 text-right'>
+                  <span className='block text-[15px] font-medium text-[#111c2e]'>ربات تلگرام</span>
+                  <span className='block pt-0.5 text-[12px] text-[#9aa2ab]'>ویژه دارندگان اشتراک مزایده</span>
+                </span>
+                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#9aa2ab' strokeWidth='1.9' strokeLinecap='round' strokeLinejoin='round' className='flex-none'>
+                  <rect x='4.5' y='10.5' width='15' height='10' rx='2.5' />
+                  <path d='M8 10.5V7.5a4 4 0 0 1 8 0v3' />
+                </svg>
+              </Link>
+            )}
+
+            <button
+              type='button'
+              onClick={handleLogout}
+              className={`${rowClass} text-right hover:border-[#e0472f] hover:bg-[#fdf1ef]`}
+            >
+              <span className='flex h-9 w-9 flex-none items-center justify-center rounded-[10px] border border-[#f7d8d2] bg-[#fdf3f1]'>
+                <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='#e0472f' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M14 5.5H7.5A2.5 2.5 0 0 0 5 8v8a2.5 2.5 0 0 0 2.5 2.5H14' />
+                  <path d='M17.5 12H10M14.5 9l3 3-3 3' />
+                </svg>
+              </span>
+              <span className='min-w-0 flex-1 text-[15px] font-medium text-[#e0472f]'>خروج</span>
+              <span className='flex-none text-xl leading-none text-[#e5a79c]'>‹</span>
+            </button>
           </nav>
         </div>
       </div>

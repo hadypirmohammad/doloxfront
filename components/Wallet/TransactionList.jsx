@@ -26,7 +26,7 @@ const TransactionList = ({ transactions, layout, onOpen }) => {
                     flexDirection: 'row-reverse'
                 }}
             >
-                <Link href="/wallet/transactions" style={{ fontSize: 12.5, fontWeight: 500, color: '#F4661C' }}>
+                <Link href="/wallet/transactions" style={{ fontSize: 12.5, fontWeight: 500, color: '#FF5E00' }}>
                     مشاهده همه
                 </Link>
                 <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#17191D' }}>تراکنش‌های اخیر</h2>

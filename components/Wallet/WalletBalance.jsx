@@ -8,7 +8,7 @@ const WalletBalance = ({ balance, layout, onCharge }) => {
             style={{
                 flex: layout.isDesktop ? '0 0 ' + layout.balW : '1 1 auto',
                 alignSelf: layout.isDesktop ? 'auto' : 'stretch',
-                background: '#F4661C',
+                background: '#FF5E00',
                 borderRadius: 18,
                 padding: 24,
                 display: 'flex',

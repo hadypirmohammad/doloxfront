@@ -1,3 +1,4 @@
+import { galleryCityLabel } from '@/utils/services/autoGalleries';
 import { BackendURL } from '@/utils/URL';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -7,8 +8,8 @@ const GalleryCard = ({ gallery }) => {
     ? `${BackendURL.slice(0, -1)}${gallery.Profile}`
     : gallery?.logo || '/media/images/sampleautogallery.png';
 
-  const name = gallery?.Name || gallery?.company_name || 'اتوگالری';
-  const city = gallery?.CityName || gallery?.city || 'ایران';
+  const name = gallery?.Name || gallery?.company_name || 'گالری';
+  const city = galleryCityLabel(gallery);
   const href = gallery?.GalleryId ? `/autogallery/${gallery.GalleryId}` : '/autogallery';
 
   return (
@@ -22,7 +23,7 @@ const GalleryCard = ({ gallery }) => {
       <h3 className="mt-3 line-clamp-1 text-center font-['vazir'] text-[13px] font-bold text-secondary sm:text-[14px]">
         {name}
       </h3>
-      <p className="mt-1 font-['vazir'] text-[12px] text-[#8A8A8A]">{city}</p>
+      {city && <p className="mt-1 font-['vazir'] text-[12px] text-[#8A8A8A]">{city}</p>}
     </Link>
   );
 };

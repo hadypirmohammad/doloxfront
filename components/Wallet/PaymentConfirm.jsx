@@ -55,7 +55,7 @@ const PaymentConfirm = ({ order, gateways, layout, onPay, onBack }) => {
                                     borderRadius: 11,
                                     cursor: 'pointer',
                                     textAlign: 'right',
-                                    border: '1px solid ' + (gatewayIndex === index ? '#F4661C' : '#E6E7EB'),
+                                    border: '1px solid ' + (gatewayIndex === index ? '#FF5E00' : '#E6E7EB'),
                                     background: gatewayIndex === index ? '#FDEDE3' : '#fff'
                                 }}
                             >
@@ -65,7 +65,7 @@ const PaymentConfirm = ({ order, gateways, layout, onPay, onBack }) => {
                                         height: 16,
                                         borderRadius: '50%',
                                         flex: '0 0 auto',
-                                        border: '5px solid ' + (gatewayIndex === index ? '#F4661C' : '#DDE0E4'),
+                                        border: '5px solid ' + (gatewayIndex === index ? '#FF5E00' : '#DDE0E4'),
                                         background: '#fff'
                                     }}
                                 />
@@ -104,7 +104,7 @@ const PaymentConfirm = ({ order, gateways, layout, onPay, onBack }) => {
                         onClick={() => onPay(gateways[gatewayIndex]?.id ?? '')}
                         style={{
                             border: 'none',
-                            background: '#F4661C',
+                            background: '#FF5E00',
                             color: '#fff',
                             fontSize: 15,
                             fontWeight: 600,

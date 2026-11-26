@@ -1,33 +1,32 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export const PASSENGER_HEAD_BRAND_ID = 5;
-export const VANET_CATEGORY_ID = 'vanet';
-export const VANET_KEYWORD = 'وانت';
+export const PASSENGER_HEAD_BRAND_ID = 0;
+export const ALL_CATEGORY_ID = 0;
 
 export const VEHICLE_CATEGORIES = [
   {
     id: 5,
-    name: 'سواری',
-    image: '/media/images/savari.png',
-    width: 145,
-    height: 50,
+    name: 'خودرو',
+    image: '/media/images/savari.webp',
+    width: 333,
+    height: 237,
     imageClass: 'h-8 w-auto object-contain sm:h-12',
   },
   {
     id: 7,
     name: 'سنگین',
-    image: '/media/images/kamion.png',
-    width: 143,
-    height: 66,
+    image: '/media/images/kamion.webp',
+    width: 333,
+    height: 237,
     imageClass: 'h-8 w-auto object-contain sm:h-12',
   },
   {
     id: 6,
     name: 'موتور سیکلت',
-    image: '/media/images/motorcycle.png',
-    width: 104,
-    height: 63,
+    image: '/media/images/motorcycle.webp',
+    width: 333,
+    height: 237,
     imageClass: 'h-8 w-auto object-contain sm:h-12',
   },
 ];
@@ -35,18 +34,18 @@ export const VEHICLE_CATEGORIES = [
 export const HOME_CATEGORIES = [
   ...VEHICLE_CATEGORIES,
   {
-    id: VANET_CATEGORY_ID,
-    name: 'وانت',
-    image: '/media/images/vanet.png',
-    width: 123,
-    height: 54,
+    id: ALL_CATEGORY_ID,
+    name: 'همه',
+    image: '/media/images/vanet.webp',
+    width: 333,
+    height: 237,
     imageClass: 'h-8 w-auto object-contain sm:h-12',
   },
 ];
 
 export const getCategoryQuery = (categoryId) =>
-  categoryId === VANET_CATEGORY_ID
-    ? { headBrandId: PASSENGER_HEAD_BRAND_ID, type: VANET_CATEGORY_ID }
+  categoryId === ALL_CATEGORY_ID
+    ? { headBrandId: 'all' }
     : { headBrandId: categoryId };
 
 const CategoryNav = () => {

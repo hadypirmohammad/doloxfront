@@ -1,22 +1,74 @@
 import React from 'react'
-import { getAuctionDetail } from '@/utils/Request';
-import { getToken } from '@/utils/Auth';
+import { getAuctionDetail, getAuctions, getcities, getUser } from '@/utils/Request';
+import { findCityById } from '@/utils/cities';
+import { getToken, withAuth } from '@/utils/Auth';
+import { hasActiveSubscription } from '@/utils/Cal';
 import AuctionDetailCard from '@/components/Auction/AuctionDetailCard';
 import Image from 'next/image';
 import { BackendURL } from './../../utils/URL';
-import AuctionItem from '@/components/Auction/AuctionItem';
 
 export async function getServerSideProps(context) {
 
+    const authResult = await withAuth(context);
+
+    if (authResult.redirect) {
+        return authResult;
+    }
 
     const { auctionid } = context.params;
     const token = await getToken(context);
-    const current = await getAuctionDetail(token, auctionid)
 
-    // console.log("current", current)
+    const { status, auction } = await getAuctionDetail(token, auctionid);
+
+    if (auction && Object.keys(auction).length > 0) {
+        const cities = await getcities().catch(() => []);
+        const cityId = auction?.Auction?.City?.CityId ?? auction?.Auction?.CityId;
+        const location = findCityById(cities, cityId);
+        return {
+            props: {
+                auction,
+                provinceName: location?.ProvinceName || '',
+            },
+        };
+    }
+
+    if (status === 403) {
+        const locked = await getAuctions(token, '', '', '', undefined, undefined, undefined, 1, 100).catch(() => []);
+        const match = (locked || []).find((item) => String(item?.AuctionId) === String(auctionid));
+
+        return {
+            redirect: {
+                destination: match?.Title
+                    ? `/auctions/subscription?title=${encodeURIComponent(match.Title)}`
+                    : '/auctions/subscription',
+                permanent: false,
+            },
+        };
+    }
+
+    if (status === 401) {
+        return {
+            redirect: {
+                destination: `/login?next=${encodeURIComponent(context.resolvedUrl)}`,
+                permanent: false,
+            },
+        };
+    }
+
+    const userdata = await getUser(token).catch(() => null);
+
+    if (hasActiveSubscription(userdata)) {
+        return {
+            props: {
+                auction: {},
+            },
+        };
+    }
+
     return {
-        props: {
-            auction: current || {},
+        redirect: {
+            destination: '/auctions/subscription',
+            permanent: false,
         },
     };
 }
@@ -24,7 +76,7 @@ export async function getServerSideProps(context) {
 
 
 
-const AuctionDetail = ({ auction }) => {
+const AuctionDetail = ({ auction, provinceName = '' }) => {
     // console.log(auction)
   
     return (
@@ -32,7 +84,7 @@ const AuctionDetail = ({ auction }) => {
             <div className='mx-auto w-full max-w-screen-xl'>
                 <div className='flex w-full flex-col gap-3 md:flex-row md:items-stretch md:gap-4'>
                     <div className='w-full shrink-0 md:w-[280px]'>
-                        <AuctionDetailCard auction={auction} />
+                        <AuctionDetailCard auction={auction} provinceName={provinceName} />
                     </div>
                     <div className='relative min-h-[240px] min-w-0 flex-1 overflow-hidden rounded-[15px] bg-white p-6 md:min-h-full'>
                         <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
@@ -60,15 +112,6 @@ const AuctionDetail = ({ auction }) => {
                                 </p>
                             </div>
                         )}
-                    </div>
-                </div>
-
-                <div className="mt-8 w-full">
-                    <h2 className="w-fit rounded-full bg-white px-4 py-2 text-center text-secondary">مزایده های مشابه</h2>
-                    <div className='mt-4 flex flex-col gap-2'>
-                        {auction.Simular?.map((ac, index) => (
-                            <AuctionItem key={index} auction={ac} />
-                        ))}
                     </div>
                 </div>
             </div>

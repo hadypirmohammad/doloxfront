@@ -3,7 +3,7 @@ import React from "react";
 import { getBrandBlogUrl, getTechSpecificItems } from "@/utils/techSpecific";
 
 const TechSpecificDetail = ({ ad }) => {
-  const items = getTechSpecificItems(ad, 2);
+  const items = getTechSpecificItems(ad, 4);
   if (!items.length) return null;
 
   const blogUrl = getBrandBlogUrl(ad?.Brand);
@@ -14,7 +14,10 @@ const TechSpecificDetail = ({ ad }) => {
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-5">
         {items.map((item, index) => (
-          <div key={`${item.name}-${index}`} className="text-center min-w-0">
+          <div
+            key={`${item.name}-${index}`}
+            className={`text-center min-w-0 ${items.length === 1 ? 'col-span-2' : ''}`}
+          >
             <p className="text-sm text-gray-500 !font-[vazir]">{item.name}</p>
             <p className="text-sm text-black pt-1 break-words !font-[vazir]">{item.measure}</p>
           </div>

@@ -43,7 +43,7 @@ const Hero = () => {
             <style jsx global>{`
                 .mySwiper .swiper-button-next,
                 .mySwiper .swiper-button-prev {
-                    color: #FF6B00 !important;
+                    color: #FF5E00 !important;
                     background: rgba(255, 255, 255, 0.2);
                     width: 40px;
                     height: 40px;

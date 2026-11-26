@@ -10,7 +10,7 @@ const LastAutos = ({ autogalleries }) => {
               <div className='flex justify-between items-center md:pb-16   '>
 
                   <h2 className=' md:text-3xl text-2xl w-full text-center md:text-right  '>
-                      آخرین اتوگالری ها
+                      آخرین گالری ها
                   </h2>
                   {/* <Link href='/' className="text-black hidden md:block">بیشتر</Link> */}
               </div>

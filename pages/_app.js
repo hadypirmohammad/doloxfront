@@ -49,6 +49,12 @@ export default function App({ Component, pageProps }) {
     };
 
     fetchUser();
+
+    Router.events.on('routeChangeComplete', fetchUser);
+
+    return () => {
+      Router.events.off('routeChangeComplete', fetchUser);
+    };
   }, []);
 
   return (

@@ -10,7 +10,7 @@ const AuthShell = ({ title, subtitle, children, footer }) => {
                 <span className='pointer-events-none absolute -right-24 -top-24 h-40 w-40 rounded-full bg-[#f9d8bd]' />
                 <span className='pointer-events-none absolute -bottom-44 -left-44 h-80 w-80 rounded-full bg-[#fdf1e8]' />
                 <span className='pointer-events-none absolute -bottom-36 -left-36 h-64 w-64 rounded-full bg-[#fbe4d0]' />
-                <span className='pointer-events-none absolute -bottom-28 -left-28 h-48 w-48 rounded-full bg-gradient-to-br from-[#ffb05e] to-[#f7740a]' />
+                <span className='pointer-events-none absolute -bottom-28 -left-28 h-48 w-48 rounded-full bg-gradient-to-br from-[#ffb05e] to-[#FF5E00]' />
 
                 <div className='relative z-10 flex flex-col'>
                     <Link href='/' dir='ltr' className='dolox-wordmark text-center text-[27px] leading-none tracking-[1px] text-[#1c2b42]'>
@@ -42,7 +42,7 @@ export const authFieldWrap =
 export const authFieldInput =
     "min-w-0 flex-1 border-0 bg-transparent py-3 text-left text-[13px] font-medium tracking-[0.6px] text-[#1c2b42] outline-none font-['vazir']";
 export const authSubmitButton =
-    'mt-5 flex h-[46px] w-full items-center justify-center gap-4 rounded-xl bg-gradient-to-b from-[#fd8a1f] to-[#f7740a] text-sm font-bold text-white shadow-[0_6px_16px_rgba(249,116,10,0.24)] transition hover:brightness-105 disabled:opacity-60';
+    'mt-5 flex h-[46px] w-full items-center justify-center gap-4 rounded-xl bg-gradient-to-b from-[#fd8a1f] to-[#FF5E00] text-sm font-bold text-white shadow-[0_6px_16px_rgba(249,116,10,0.24)] transition hover:brightness-105 disabled:opacity-60';
 
 export const ArrowIcon = () => (
     <svg width='20' height='11' viewBox='0 0 22 12' fill='none' stroke='#fff' strokeWidth='1.5' strokeLinecap='round'>

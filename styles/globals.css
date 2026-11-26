@@ -19,17 +19,17 @@ body {
 
 @font-face {
   font-family: 'digirastin';
-  src: url('/fonts/digirastin.ttf') format('truetype');
+  src: url('/media/fonts/digirastin.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'vazir-bold';
-  src: url('/fonts/vazirbold.woff2') format('woff2');
+  src: url('/media/fonts/vazirbold.woff2') format('woff2');
 }
 
 @font-face {
   font-family: 'vazir';
-  src: url('/fonts/vazirnormal.woff2') format('woff2');
+  src: url('/media/fonts/vazirnormal.woff2') format('woff2');
 }
 
 
@@ -40,6 +40,11 @@ body {
 
 h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold {
   font-family: 'vazir-bold', 'vazir', Tahoma, sans-serif;
+}
+
+.font-soft {
+  font-family: 'vazir', Tahoma, sans-serif;
+  font-weight: 500;
 }
 
 .dolox-wordmark {
@@ -55,7 +60,7 @@ h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold {
    right: -30px;
    border-top-width: 64px;
    /* Adjust this value */
-   /* border-top-color: #FA4505; */
+   /* border-top-color: #FF5E00; */
    /* Same color as background */
    border-right-width: 30px;
    /* Adjust this value */
@@ -67,7 +72,7 @@ h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold {
  }
 
  .bg-gradient-orange{
-  background: linear-gradient(90deg, #FF7A18 0%, #F04A0A 100%);
+  background: linear-gradient(90deg, #FF7F2E 0%, #FF5E00 100%);
  }
 
  .specialad{
@@ -79,7 +84,8 @@ h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold {
 
  .slider {
    position: relative;
-   width: 180px;
+   width: 100%;
+   height: 22px;
  }
 
  .slider__track,
@@ -132,7 +138,7 @@ h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold {
    pointer-events: none;
    position: absolute;
    height: 0;
-   width: 180px;
+   width: 100%;
    outline: none;
  }
 

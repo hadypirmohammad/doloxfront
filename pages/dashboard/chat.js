@@ -1,4 +1,3 @@
-import DashboardPanel from "@/components/global/DashboardPanel";
 import ChatPanel from "@/components/Chat/ChatPanel";
 import { getToken, withAuth } from "@/utils/Auth";
 import { getUser } from "@/utils/Request";
@@ -60,9 +59,6 @@ const ChatPage = ({ user, token, profileData }) => {
 
   return (
     <div dir="rtl" className="flex h-fit w-full justify-start gap-4 bg-[#f3f4f6] px-0 pb-0 pt-6 md:px-4 md:pb-10 md:pt-8">
-      <div className="hidden md:block">
-        <DashboardPanel user={user} />
-      </div>
       <div className="h-full w-full min-w-0 flex-1">
         <div className="flex w-full flex-col">
           {!userId ? (

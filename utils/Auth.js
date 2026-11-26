@@ -1,7 +1,12 @@
 // lib/auth.js
 import { parseCookies, destroyCookie } from 'nookies';
 
-export const PREVIEW_WITHOUT_LOGIN = true;
+export const PREVIEW_WITHOUT_LOGIN = false;
+
+export function loginUrlFor(path) {
+    if (!path || path === '/login') return '/login';
+    return `/login?next=${encodeURIComponent(path)}`;
+}
 
 export async function withAuth(context) {
     const cookies = parseCookies(context);
@@ -10,7 +15,7 @@ export async function withAuth(context) {
     if (!token && !PREVIEW_WITHOUT_LOGIN) {
         return {
             redirect: {
-                destination: '/login',
+                destination: loginUrlFor(context?.resolvedUrl),
                 permanent: false,
             },
         };
@@ -37,7 +42,7 @@ export async function logout(context) {
 
     return {
         redirect: {
-            destination: '/login', // Redirect to login page after logout
+            destination: '/', // Redirect to login page after logout
             permanent: false,
         }
     };

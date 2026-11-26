@@ -82,9 +82,9 @@ const CreateAdSteps = ({ step = 0, category }) => {
   const steps = getSteps(category);
 
   return (
-    <div dir="rtl" className="px-3 pt-5 sm:px-5">
-      <div className="relative mx-auto flex max-w-xl items-start justify-between gap-1">
-        <div className="absolute right-5 left-5 top-[18px] h-px bg-[#E4E9F0] sm:top-[21px]" />
+    <div dir="rtl" className="px-2 pt-5 sm:px-5">
+      <div className="relative mx-auto flex max-w-xl items-start justify-between gap-0 sm:gap-1">
+        <div className="absolute right-4 left-4 top-[15px] h-px bg-[#E4E9F0] sm:right-5 sm:left-5 sm:top-[21px]" />
         {steps.map((item, index) => {
           const done = index < step;
           const active = index === step;
@@ -95,9 +95,9 @@ const CreateAdSteps = ({ step = 0, category }) => {
               : 'bg-white border-[#E7EBF1] text-[#9AA6B8]';
 
           return (
-            <div key={item.label} className="relative z-10 flex w-9 flex-col items-center gap-1.5 sm:w-11">
+            <div key={item.label} className="relative z-10 flex w-[34px] flex-col items-center gap-1.5 sm:w-11">
               <span
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] transition-colors sm:h-[42px] sm:w-[42px] ${circle}`}
+                className={`flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] transition-colors sm:h-[42px] sm:w-[42px] ${circle}`}
               >
                 <svg
                   width="18"
@@ -108,13 +108,13 @@ const CreateAdSteps = ({ step = 0, category }) => {
                   strokeWidth="1.7"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="sm:h-[19px] sm:w-[19px]"
+                  className="h-4 w-4 sm:h-[19px] sm:w-[19px]"
                 >
                   {done ? icons.check : icons[item.icon]}
                 </svg>
               </span>
               <span
-                className={`whitespace-nowrap text-[9.5px] font-semibold sm:text-[11px] ${
+                className={`whitespace-nowrap text-[8.5px] font-semibold sm:text-[11px] ${
                   done ? 'text-secondary' : active ? 'text-primary' : 'text-[#9AA6B8]'
                 }`}
               >

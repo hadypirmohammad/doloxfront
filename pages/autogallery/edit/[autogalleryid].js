@@ -84,7 +84,7 @@ const AutogalleryEdit = ({ autogallery, token }) => {
                             
                             toast.success('اطلاعات با موفقیت ثبت شد!')
                             setTimeout(() => {
-                                router.push("/dashboard/auto")
+                                router.push("/dashboard/gallery")
                             }, 200);
                       
 

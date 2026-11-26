@@ -37,8 +37,8 @@ const links = [
         ),
     },
     {
-        href: '/dashboard/auto',
-        label: 'اتو گالری های من',
+        href: '/dashboard/gallery',
+        label: 'گالری من',
         icon: (
             <>
                 <path d="M4 15.5h16v3H4z" />
@@ -61,12 +61,12 @@ const DashboardPanel = ({ user }) => {
         destroyCookie(null, 'access');
         destroyCookie(null, 'refresh');
         await fetch('/api/logout', { method: 'POST' });
-        await router.push('/login');
+        await router.push('/');
         router.reload();
     };
 
     return (
-        <aside className="hidden w-3/12 min-w-[240px] max-w-[280px] flex-col gap-[22px] rounded-[20px] border border-[#ececf0] bg-white p-5 py-6 md:flex">
+        <aside className="hidden w-3/12 min-w-[240px] max-w-[280px] flex-col gap-[22px] self-start rounded-[20px] border border-[#ececf0] bg-white p-5 py-6 md:flex">
             <div className="flex flex-col items-center gap-3">
                 <Image
                     className="h-[92px] w-[92px] rounded-full object-cover object-center"

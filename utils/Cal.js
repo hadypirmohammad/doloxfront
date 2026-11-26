@@ -26,6 +26,74 @@ export function calculateDaysLeft(endDateStr) {
 
     return Number.isFinite(daysLeft) ? daysLeft : 0;
 }
+export function applyDiscount(basePrice, discount) {
+    const base = Number(basePrice) || 0;
+    if (!discount || !base) return base;
+
+    const percent = Number(discount.PercentageDeduction ?? discount.percentageDeduction);
+    if (Number.isFinite(percent) && percent > 0) {
+        return Math.max(0, Math.round(base - (base * percent) / 100));
+    }
+
+    const amount = Number(discount.DeductionMoney ?? discount.deductionMoney);
+    if (Number.isFinite(amount) && amount > 0) {
+        return Math.max(0, Math.round(base - amount));
+    }
+
+    return base;
+}
+
+export function discountLabel(discount) {
+    const percent = Number(discount?.PercentageDeduction ?? discount?.percentageDeduction);
+    if (Number.isFinite(percent) && percent > 0) return `${toPersianDigits(percent)}٪ تخفیف اعمال شد`;
+
+    const amount = Number(discount?.DeductionMoney ?? discount?.deductionMoney);
+    if (Number.isFinite(amount) && amount > 0) return `${toPersianDigits(amount.toLocaleString('en-US'))} تومان تخفیف اعمال شد`;
+
+    return 'کد تخفیف اعمال شد';
+}
+
+export function pickField(user, names) {
+    if (!user || typeof user !== 'object') return null;
+
+    const wanted = names.map((name) => name.toLowerCase());
+    const hit = Object.keys(user).find((key) => wanted.includes(key.toLowerCase()));
+
+    return hit ? user[hit] : null;
+}
+
+export function subscriptionEndDate(user) {
+    return pickField(user, [
+        'SubscribtionDate',
+        'SubscriptionDate',
+        'SubscribtionEndDate',
+        'SubscriptionEndDate',
+        'SubscribtionExpireDate',
+    ]);
+}
+
+export function hasActiveSubscription(user) {
+    const end = subscriptionEndDate(user);
+    if (end != null) return calculateDaysLeft(end) > 0;
+
+    const subId = pickField(user, ['subId', 'SubscribtionId', 'SubscriptionId']);
+    return subId != null && Number(subId) > 0;
+}
+
+export function adTitleWithoutYear(title, year) {
+    const text = String(title || '').trim();
+    if (!text || year == null) return text;
+
+    const digits = String(year);
+    const both = `(?:${digits}|${toPersianDigits(digits)})`;
+    const stripped = text
+        .replace(new RegExp(`[\s‌]*${both}[\s‌]*$`), '')
+        .replace(/[\s‌]*مدل[\s‌]*$/, '')
+        .trim();
+
+    return stripped || text;
+}
+
 export function formatPrice(price) {
     return price?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -51,7 +119,6 @@ export function convertToShamsiAndGregorian(dateString) {
     const gregorianMonth = date.getMonth() + 1; // Months are zero-indexed
     const gregorianDay = date.getDate();
 
-    // jalaali-js fails on placeholder/.NET min dates like 0001-01-01
     if (gregorianYear < 622 || gregorianYear > 9999) {
         return fallback;
     }
@@ -82,6 +149,7 @@ export function mapToAdFormat(item) {
      
        
         BrandName : item.MainBrand,
+        BrandIcon: item.BrandIcon,
         EnTitle: item.EnTitle,
         Title: item.Title,
         CityName:  item.Location,
@@ -92,7 +160,8 @@ export function mapToAdFormat(item) {
         isRent: item.IsRent,
         Worked: item.Worked,
         Year:  Number(item.Year),
-        AdFeatures: []
+        AdFeatures: [],
+        Features: item.Features || []
     };
 }
 

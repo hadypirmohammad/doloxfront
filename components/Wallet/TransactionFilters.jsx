@@ -81,7 +81,7 @@ const TransactionFilters = ({ layout, initial, onApply, onReset }) => {
                     style={{
                         flex: 1,
                         border: 'none',
-                        background: '#F4661C',
+                        background: '#FF5E00',
                         color: '#fff',
                         fontSize: 13.5,
                         fontWeight: 600,

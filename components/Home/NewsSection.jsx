@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import NewsCard from './NewsCard';
 
-const NewsSection = ({ blogs = [] }) => {
+const NewsSection = ({ blogs = [], surface = 'bg-[#FAFAFA]', bare = false }) => {
   const [Swiper, setSwiper] = useState(null);
   const [SwiperSlide, setSwiperSlide] = useState(null);
   const [modules, setModules] = useState([]);
@@ -26,17 +26,20 @@ const NewsSection = ({ blogs = [] }) => {
   const items = blogs.slice(0, 4);
 
   return (
-    <section className="bg-[#FAFAFA] px-3 py-8 sm:px-4 sm:py-12">
-      <div className="mx-auto max-w-screen-xl">
-        <div className="mb-4 flex items-center justify-between sm:mb-6">
+    <section className={`${surface} ${bare ? '' : 'px-3 py-8 sm:px-4 sm:py-12'}`}>
+      <div className={bare ? "" : "mx-auto max-w-screen-xl"}>
+        <div className={`mb-4 items-center justify-between sm:mb-6 ${bare ? "hidden" : "flex"}`}>
           <h2 className="text-lg text-secondary sm:text-2xl">آخرین اخبار</h2>
           <Link
             href="https://blog.dolox.ir"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-['vazir'] text-sm text-primary"
+            className="font-soft flex h-9 flex-none items-center gap-1 rounded-full border border-primary/35 bg-[#FFF6F0] px-3.5 text-[12.5px] text-[#C2410C] transition-colors hover:bg-primary hover:text-white sm:text-[13.5px]"
           >
             مشاهده همه
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-none">
+              <path d="M14 6l-6 6 6 6" />
+            </svg>
           </Link>
         </div>
 

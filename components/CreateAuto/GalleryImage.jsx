@@ -39,7 +39,7 @@ const GalleryImage = ({
             className="btn btn-sm bg-primary text-white border-none"
             onClick={() => setStep(3)}
           >
-            ثبت اتوگالری
+            ثبت گالری
           </button>
 
           <button

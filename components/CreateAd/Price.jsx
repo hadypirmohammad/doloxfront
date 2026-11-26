@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
-import { formatNumber } from '@/utils/Cal';
 
 // Yup schema for price validation
 const validationSchema = Yup.object().shape({
@@ -13,6 +12,7 @@ const validationSchema = Yup.object().shape({
 const tabs = [
     {
         title: 'نقدی',
+        highlight: true,
         icon: (
             <>
                 <circle cx='9' cy='9' r='5.5' />
@@ -31,6 +31,17 @@ const tabs = [
         ),
     },
     {
+        title: 'اجاره',
+        icon: (
+            <>
+                <path d='M4 17h16' />
+                <path d='M5.5 17v-3.5l1.7-4A2 2 0 0 1 9.04 8h5.92a2 2 0 0 1 1.84 1.5l1.7 4V17' />
+                <circle cx='8.5' cy='14.5' r='.9' />
+                <circle cx='15.5' cy='14.5' r='.9' />
+            </>
+        ),
+    },
+    {
         title: 'توافقی',
         icon: (
             <>
@@ -42,11 +53,11 @@ const tabs = [
     },
 ];
 
-const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
+const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale, setFreeZone, setPriceType }) => {
 
 
     const [category, setCategory] = useState("نقدی");
-    const [isRent, setIsRent] = useState(false); // For rent or sale option
+    const [freeZonePlate, setFreeZonePlate] = useState(false);
 
     const formik = useFormik({
         initialValues: {
@@ -59,7 +70,9 @@ const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
             } else {
                 setPrice(values.price); // Set the price if نقدی or اقساط is selected
             }
-            setRentorsale(isRent); // Set if rent  true
+            setRentorsale(category === "اجاره"); // Set if rent  true
+            setPriceType?.(category);
+            setFreeZone?.(freeZonePlate);
             setStep(6); // Proceed to next step
         }
     });
@@ -72,24 +85,12 @@ const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
     return (
         <div dir='rtl' className='px-4 pt-5 sm:px-5 [&_*]:!font-["vazir"]'>
             <div className='mx-auto max-w-xl rounded-[20px] border border-[#EEF1F6] bg-white p-4 shadow-[0_2px_10px_rgba(20,36,63,.04)] sm:p-5'>
-                <div className='flex flex-row-reverse items-center justify-between gap-3'>
-                    <button
-                        type='button'
-                        onClick={formik.handleSubmit}
-                        className='flex flex-row-reverse items-center gap-2 rounded-xl bg-gradient-orange px-4 py-2.5 text-[12.5px] font-bold text-white'
-                    >
-                        <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                            <path d='M19 12H5M12 19l-7-7 7-7' />
-                        </svg>
-                        ادامه
-                    </button>
-                    <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-2'>
                         <span className='h-5 w-[3px] rounded-[3px] bg-primary' />
                         <h2 className='m-0 text-[17px] font-bold text-secondary'>قیمت خودرو</h2>
-                    </div>
                 </div>
 
-                <div className='mt-4 flex overflow-hidden rounded-[14px] border border-[#EEF1F6]'>
+                <div className='mt-4 flex items-stretch gap-1 overflow-hidden rounded-[14px] border border-[#EEF1F6] p-1'>
                     {tabs.map((tab) => {
                         const active = category === tab.title;
                         return (
@@ -99,13 +100,23 @@ const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
                                     setCategory(tab.title);
                                     if (tab.title === 'توافقی') formik.setFieldValue('price', null);
                                 }}
-                                className={`flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm transition-colors ${
+                                className={`flex cursor-pointer items-center justify-center gap-1.5 rounded-xl py-3 transition-colors sm:gap-2 ${
+                                    tab.highlight ? 'flex-[1.45] text-[15px]' : 'flex-1 text-[13px]'
+                                } ${
                                     active
-                                        ? 'rounded-xl bg-gradient-orange font-bold text-white'
+                                        ? 'bg-gradient-orange font-bold text-white shadow-[0_6px_16px_rgba(249,116,10,.28)]'
                                         : 'font-semibold text-[#42536B]'
                                 }`}
                             >
-                                <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round'>
+                                <svg
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    strokeWidth='1.7'
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    className={tab.highlight ? 'h-[21px] w-[21px]' : 'h-[17px] w-[17px]'}
+                                >
                                     {tab.icon}
                                 </svg>
                                 {tab.title}
@@ -130,9 +141,6 @@ const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
                             />
                             <span className='flex-none text-[14.5px] font-bold text-secondary'>تومان</span>
                         </label>
-                        {formik.values.price > 0 && (
-                            <p className='m-0 pt-2 text-[12.5px] text-[#8B94A5]'>{formatNumber(formik.values.price)} تومان</p>
-                        )}
                         {formik.touched.price && formik.errors.price ? (
                             <div className='pt-1.5 text-sm text-red-500'>{formik.errors.price}</div>
                         ) : null}
@@ -152,12 +160,12 @@ const Price = ({ step, setStep, setPrice, setInstallments, setRentorsale }) => {
                     </div>
                 </div>
 
-                <label className='mt-4 flex cursor-pointer flex-row-reverse items-center justify-between gap-3'>
-                    <span className='text-[15px] font-bold text-secondary'>خودرو را اجاره هم می دهم</span>
+                <label className='mt-4 flex cursor-pointer items-center justify-between gap-3'>
+                    <span className='text-[15px] font-bold text-secondary'>پلاک منطقه آزاد</span>
                     <input
                         type='checkbox'
-                        checked={isRent}
-                        onChange={() => setIsRent(!isRent)}
+                        checked={freeZonePlate}
+                        onChange={() => setFreeZonePlate(!freeZonePlate)}
                         className='checkbox h-6 w-6 rounded-[7px] border-[1.5px] border-primary [--chkbg:theme(colors.primary)] [--chkfg:white]'
                     />
                 </label>

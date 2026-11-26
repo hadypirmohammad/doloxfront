@@ -4,7 +4,7 @@ import React from 'react';
 const quickLinks = [
   { href: '/ads', label: 'خرید خودرو' },
   { href: '/auctions', label: 'مزایده ها' },
-  { href: '/autogallery', label: 'اتوگالری ها' },
+  { href: '/autogallery', label: 'گالری ها' },
   { href: '/khalafi', label: 'خلافی خودرو' },
 ];
 
@@ -31,6 +31,12 @@ const WhatsappIcon = ({ size = 16, color = '#fff' }) => (
   </svg>
 );
 
+const PhoneIcon = ({ size = 16, color = '#fff' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .7-.2 1l-2.2 2.2z" />
+  </svg>
+);
+
 const TelegramIcon = ({ size = 18, color = '#fff' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
     <path d="M21.8 4.1 2.9 11.4c-1 .4-1 1 .1 1.3l4.5 1.4 1.7 5.2c.2.6.5.7 1 .3l2.6-2 4.6 3.4c.7.5 1.2.2 1.4-.6l3.3-15.1c.2-.9-.3-1.3-1.3-1.2zM8.9 14.4l9-5.7c.4-.3.8 0 .4.3l-7.4 6.8-.3 3z" />
@@ -50,22 +56,6 @@ const ClockIcon = ({ color = '#8d97a3' }) => (
     <circle cx="12" cy="12" r="9" />
     <polyline points="12,7 12,12 16,14" />
   </svg>
-);
-
-const SamandehiPlaceholder = ({ height = 72, width = 56 }) => (
-  <div className="flex flex-col items-center justify-center gap-2 p-1">
-    <span
-      className="flex items-center justify-center rounded-lg border-2 border-[#6a798d]"
-      style={{ height, width }}
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a798d" strokeWidth="1.6">
-        <rect x="3" y="4" width="18" height="15" rx="2" />
-        <circle cx="8.5" cy="9.5" r="1.5" />
-        <polyline points="4,17 9,12 13,15 17,11 20,14" />
-      </svg>
-    </span>
-    <span className="text-[11.5px] font-semibold leading-[1.5] text-[#dfe5ee]">محل لوگوی ساماندهی</span>
-  </div>
 );
 
 const BadgeImage = ({ src, alt, code, height }) => (
@@ -134,18 +124,26 @@ const MobileFooter = () => (
         </div>
         <div className="flex flex-col gap-2.5">
           {supportNumbers.map((item) => (
-            <a
-              key={item.raw}
-              href={`https://wa.me/${item.intl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 rounded-xl bg-[#152741] px-3 py-2.5 transition-colors hover:bg-[#1d3455]"
-            >
-              <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-primary">
+            <div key={item.raw} className="flex items-center gap-2 rounded-xl bg-[#152741] px-2.5 py-2">
+              <a
+                href={`tel:${item.raw}`}
+                className="flex min-w-0 flex-1 items-center gap-2.5 transition-colors hover:text-primary"
+              >
+                <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-primary">
+                  <PhoneIcon size={14} />
+                </span>
+                <span dir="ltr" className="truncate text-sm font-semibold text-[#e9edf3]">{item.label}</span>
+              </a>
+              <a
+                href={`https://wa.me/${item.intl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="واتساپ"
+                className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-[#25d366] transition-opacity hover:opacity-85"
+              >
                 <WhatsappIcon size={14} />
-              </span>
-              <span dir="ltr" className="text-sm font-semibold text-[#e9edf3]">{item.label}</span>
-            </a>
+              </a>
+            </div>
           ))}
         </div>
         <div className="mt-3.5 flex items-center gap-2 text-[11.5px] leading-[1.6] text-[#9fadbe]">
@@ -176,7 +174,11 @@ const MobileFooter = () => (
       </div>
     </div>
 
-    <div className="mt-6 grid grid-cols-[1fr_1px_1fr] gap-3.5 rounded-2xl border border-[#1b2d47] p-4 text-center">
+    <div
+      className={`mt-6 grid gap-3.5 rounded-2xl border border-[#1b2d47] p-4 text-center ${
+        samandehi.src ? 'grid-cols-[1fr_1px_1fr]' : 'grid-cols-1'
+      }`}
+    >
       <a
         referrerPolicy="origin"
         target="_blank"
@@ -188,21 +190,21 @@ const MobileFooter = () => (
         <span className="text-[11px] leading-[1.6] text-[#8d9bad]">جهت اطمینان کلیک کنید</span>
       </a>
 
-      <div className="bg-[#1b2d47]" />
+      {samandehi.src && (
+        <>
+          <div className="bg-[#1b2d47]" />
 
-      {samandehi.src ? (
-        <a
-          referrerPolicy="origin"
-          target="_blank"
-          rel="noopener noreferrer"
-          href={samandehi.href}
-          className="flex flex-col items-center justify-center gap-2 rounded-xl p-1 transition-colors hover:bg-[#152741]"
-        >
-          <BadgeImage src={samandehi.src} alt="نماد ساماندهی" code={samandehi.code} height={72} />
-          <span className="text-[11px] leading-[1.6] text-[#8d9bad]">جهت اطمینان کلیک کنید</span>
-        </a>
-      ) : (
-        <SamandehiPlaceholder />
+          <a
+            referrerPolicy="origin"
+            target="_blank"
+            rel="noopener noreferrer"
+            href={samandehi.href}
+            className="flex flex-col items-center justify-center gap-2 rounded-xl p-1 transition-colors hover:bg-[#152741]"
+          >
+            <BadgeImage src={samandehi.src} alt="نماد ساماندهی" code={samandehi.code} height={72} />
+            <span className="text-[11px] leading-[1.6] text-[#8d9bad]">جهت اطمینان کلیک کنید</span>
+          </a>
+        </>
       )}
     </div>
 
@@ -278,18 +280,26 @@ const DesktopFooter = () => (
         <div className="flex w-[280px] flex-none flex-col gap-[18px]">
           <h3 className="m-0 text-[19px] font-bold text-white">پشتیبانی دولوکس</h3>
           {supportNumbers.map((item) => (
-            <a
+            <div
               key={item.raw}
-              href={`https://wa.me/${item.intl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3.5 rounded-[14px] border border-white/5 bg-[#1b2128] px-3 py-2.5 transition-colors hover:border-primary"
+              className="flex items-center gap-3 rounded-[14px] border border-white/5 bg-[#1b2128] px-3 py-2.5 transition-colors hover:border-primary"
             >
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-white">
-                <WhatsappIcon size={18} />
-              </span>
-              <span dir="ltr" className="text-[17px] font-medium tracking-[0.04em] text-[#e9edf2]">{item.label}</span>
-            </a>
+              <a href={`tel:${item.raw}`} className="flex min-w-0 flex-1 items-center gap-3.5">
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-white">
+                  <PhoneIcon size={18} />
+                </span>
+                <span dir="ltr" className="truncate text-[17px] font-medium tracking-[0.04em] text-[#e9edf2]">{item.label}</span>
+              </a>
+              <a
+                href={`https://wa.me/${item.intl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="واتساپ"
+                className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[#25d366] transition-opacity hover:opacity-85"
+              >
+                <WhatsappIcon size={17} />
+              </a>
+            </div>
           ))}
           <div className="flex items-center gap-2 text-[13.5px] text-[#8d97a3]">
             <ClockIcon />
@@ -299,7 +309,11 @@ const DesktopFooter = () => (
 
         <div className="w-[280px] flex-none">
           <h3 className="m-0 pb-[18px] text-center text-[19px] font-bold text-white">نمادها</h3>
-          <div className="grid grid-cols-[1fr_1px_1fr] gap-3.5 rounded-2xl border border-white/[0.06] p-4 text-center">
+          <div
+            className={`grid gap-3.5 rounded-2xl border border-white/[0.06] p-4 text-center ${
+              samandehi.src ? 'grid-cols-[1fr_1px_1fr]' : 'grid-cols-1'
+            }`}
+          >
             <a
               referrerPolicy="origin"
               target="_blank"
@@ -311,21 +325,21 @@ const DesktopFooter = () => (
               <span className="text-[11px] leading-[1.6] text-[#8d97a3]">جهت اطمینان کلیک کنید</span>
             </a>
 
-            <div className="bg-white/[0.06]" />
+            {samandehi.src && (
+              <>
+                <div className="bg-white/[0.06]" />
 
-            {samandehi.src ? (
-              <a
-                referrerPolicy="origin"
-                target="_blank"
-                rel="noopener noreferrer"
-                href={samandehi.href}
-                className="flex flex-col items-center justify-center gap-2 rounded-xl p-1 transition-colors hover:bg-[#1b2128]"
-              >
-                <BadgeImage src={samandehi.src} alt="نماد ساماندهی" code={samandehi.code} height={82} />
-                <span className="text-[11px] leading-[1.6] text-[#8d97a3]">جهت اطمینان کلیک کنید</span>
-              </a>
-            ) : (
-              <SamandehiPlaceholder height={82} width={62} />
+                <a
+                  referrerPolicy="origin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={samandehi.href}
+                  className="flex flex-col items-center justify-center gap-2 rounded-xl p-1 transition-colors hover:bg-[#1b2128]"
+                >
+                  <BadgeImage src={samandehi.src} alt="نماد ساماندهی" code={samandehi.code} height={82} />
+                  <span className="text-[11px] leading-[1.6] text-[#8d97a3]">جهت اطمینان کلیک کنید</span>
+                </a>
+              </>
             )}
           </div>
         </div>

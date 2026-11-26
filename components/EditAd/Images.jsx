@@ -2,13 +2,14 @@ import { removeImageReq } from '@/utils/Request';
 import { BackendURL } from '@/utils/URL';
 import Image from 'next/image';
 import React, { useState } from 'react';
+import EditStep from './EditStep';
 
 const Images = ({ step, setStep, images, setImages, token }) => {
     const [selectedImageToDelete, setSelectedImageToDelete] = useState(null);
 
     const handleImageUpload = (files) => {
         if (files.length + images.length > 6) {
-            alert("You can only upload a maximum of 6 images.");
+            alert("حداکثر ۶ تصویر می‌توانید بارگذاری کنید.");
             return;
         }
         setImages(prev => [...prev, ...Array.from(files)]);
@@ -76,99 +77,99 @@ const Images = ({ step, setStep, images, setImages, token }) => {
     if (step !== 4) return null;
 
     return (
-        <div className='px-2 md:px-0 [&_*]:!font-["vazir"]'>
-            <div dir='rtl' className='py-2 md:w-96 mx-auto px-4'>
-                <div dir='ltr' className='justify-between w-full flex items-center '>
-                    <button
-                        type='submit'
-                        className='btn btn-sm bg-primary text-white border-none'
-                        disabled={images.length < 1}
-                        onClick={() => setStep(5)}
-                    >
-                        ادامه
-                    </button>
-                    <button
-                        className='btn-sm text-primary bg-transparent shadow-none border-none'
-                        onClick={() => setStep(step - 1)}
-                    >
-                        <span className='font-[vazir] font-bold'>قبلی</span>
-                    </button>
-                </div>
-
-                <h2 className='text-base-content mt-2'>در آپلود عکس دقت کنید؛ تصاویر جذاب‌تر بازدید آگهی شما را افزایش می‌دهند.</h2>
-
+        <>
+            <EditStep
+                title='تصاویر'
+                hint='تصاویر جذاب‌تر بازدید آگهی شما را افزایش می‌دهند. روی هر تصویر بزنید تا کاور شود.'
+                onPrev={() => setStep(step - 1)}
+                onNext={() => setStep(5)}
+                nextDisabled={images.length < 1}
+            >
                 <div
-                    className='h-36 border-dashed flex items-center bg-base-200 border-base-content border rounded-[8px] justify-center mt-2'
+                    className='flex h-36 items-center justify-center rounded-[16px] border-2 border-dashed border-[#F5C7A9] bg-[#FFF8F3]'
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >
                     <input
-                        type="file"
-                        accept="image/png, image/jpeg"
+                        type='file'
+                        accept='image/png, image/jpeg'
                         multiple
                         onChange={(e) => handleImageUpload(e.target.files)}
-                        id="file-upload"
+                        id='file-upload'
                         style={{ display: 'none' }}
-                       
-
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer flex items-center">
-                        <span>برای آپلود عکس ها را اینجا رها کنید</span>
+                    <label htmlFor='file-upload' className='flex cursor-pointer flex-col items-center gap-2 text-center'>
+                        <span className='flex h-11 w-11 items-center justify-center rounded-full bg-[#FFEDE3] text-primary'>
+                            <svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.9' strokeLinecap='round' strokeLinejoin='round'>
+                                <path d='M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3' />
+                            </svg>
+                        </span>
+                        <span className='text-[13.5px] font-bold text-secondary'>افزودن تصویر</span>
+                        <span className='text-[12px] text-[#8B94A5]'>یا تصاویر را اینجا رها کنید</span>
                     </label>
                 </div>
 
-                <div className='grid grid-cols-3 gap-2 mt-2'>
+                <div className='mt-3 grid grid-cols-3 gap-2'>
                     {images.map((image, index) => (
                         <div
                             key={index}
-                            className={`relative rounded-[10px] ${index === 0 ? "shadow-secondary shadow-lg border-secondary border-4" : ""}`}
+                            className={`relative cursor-pointer overflow-hidden rounded-[12px] border-2 ${index === 0 ? 'border-primary' : 'border-transparent'}`}
                             onClick={() => setCoverImage(image)}
                         >
                             <Image
-                                className='h-36 w-full object-cover rounded'
+                                className='h-28 w-full object-cover'
                                 src={getImageSrc(image)}
-                                alt={`Uploaded Image ${index + 1}`}
-                                width={100}
-                                height={100}
+                                alt=''
+                                width={160}
+                                height={112}
                             />
-                            <button
-                                onClick={(e) => confirmDelete(e, image, index)}
-                                className="absolute -top-2 -right-2 bg-base-200 rounded-full flex items-center justify-center p-2"
-                            >
-                                ❌
-                            </button>
+                            {index !== 0 && (
+                                <button
+                                    type='button'
+                                    onClick={(e) => confirmDelete(e, image, index)}
+                                    aria-label='حذف تصویر'
+                                    className='absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white'
+                                >
+                                    <svg width='12' height='12' viewBox='0 0 14 14' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'>
+                                        <path d='M2 2l10 10M12 2 2 12' />
+                                    </svg>
+                                </button>
+                            )}
                             {index === 0 && (
-                                <div className='absolute bottom-0 w-full text-white bg-[#00000090] p-1 text-center'>
+                                <div className='absolute bottom-0 w-full bg-primary/90 py-1 text-center text-[12px] text-white'>
                                     کاور
                                 </div>
                             )}
                         </div>
                     ))}
                 </div>
-                <p className='mt-2'>
+
+                <p className='m-0 pt-3 text-[12.5px] text-[#8B94A5]'>
                     {images.length < 1
                         ? "حداقل یک تصویر انتخاب کنید."
                         : images.length > 6
-                            ? "حداکثر 6 تصویر می‌توانید انتخاب کنید."
-                            : `${images.length} تصویر انتخاب شده.`}
+                            ? "حداکثر ۶ تصویر می‌توانید انتخاب کنید."
+                            : `${images.length.toLocaleString('fa-IR')} تصویر انتخاب شده`}
                 </p>
-            </div>
+            </EditStep>
 
             {/* Delete Modal */}
             {selectedImageToDelete && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 rounded-lg w-80">
-                        <h3 className="text-lg font-bold mb-4">حذف تصویر</h3>
-                        <p className="mb-4">آیا از حذف این تصویر مطمئن هستید؟ این کار قابل بازگشت نیست.</p>
-                        <div className="flex justify-end gap-2">
+                <div dir='rtl' className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 [&_*]:!font-["vazir"]'>
+                    <div className='w-full max-w-sm rounded-[20px] bg-white p-5 text-center'>
+                        <h3 className='m-0 text-[16px] font-bold text-secondary'>حذف تصویر</h3>
+                        <p className='m-0 pt-2 text-[13px] leading-[2] text-[#8B94A5]'>آیا از حذف این تصویر مطمئن هستید؟ این کار قابل بازگشت نیست.</p>
+                        <div className='flex gap-2.5 pt-5'>
                             <button
-                                className="btn btn-sm bg-gray-300"
+                                type='button'
+                                className='flex-1 rounded-2xl border border-[#E7EBF1] bg-white py-3 text-[14px] font-bold text-secondary'
                                 onClick={() => setSelectedImageToDelete(null)}
                             >
                                 لغو
                             </button>
                             <button
-                                className="btn btn-sm bg-red-500 text-white"
+                                type='button'
+                                className='flex-1 rounded-2xl bg-[#E03A3A] py-3 text-[14px] font-bold text-white'
                                 onClick={removeImage}
                             >
                                 حذف
@@ -177,7 +178,7 @@ const Images = ({ step, setStep, images, setImages, token }) => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

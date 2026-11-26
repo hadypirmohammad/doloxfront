@@ -38,7 +38,9 @@ const TransactionDetailModal = ({ transaction, layout, onClose }) => {
                 alignItems: layout.modalAlign,
                 justifyContent: 'center',
                 padding: 18,
-                zIndex: 20
+                paddingBottom: layout.modalPadBottom ?? 18,
+                zIndex: 60,
+                overflowY: 'auto'
             }}
         >
             <div
@@ -46,7 +48,7 @@ const TransactionDetailModal = ({ transaction, layout, onClose }) => {
                 style={{
                     width: '100%',
                     maxWidth: 440,
-                    maxHeight: '90vh',
+                    maxHeight: layout.modalMaxHeight ?? '88dvh',
                     overflowY: 'auto',
                     background: '#fff',
                     borderRadius: 18,
@@ -161,7 +163,7 @@ const TransactionDetailModal = ({ transaction, layout, onClose }) => {
                         onClick={onClose}
                         style={{
                             border: 'none',
-                            background: '#F4661C',
+                            background: '#FF5E00',
                             color: '#fff',
                             fontSize: 14,
                             fontWeight: 600,

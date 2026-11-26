@@ -58,7 +58,7 @@ const Address = ({ setStep , step , setAddress }) => {
                               id="address"
                               dir="rtl"
                               type="text"
-                              placeholder="آدرس اتوگالری خود را وارد کنید"
+                              placeholder="آدرس گالری خود را وارد کنید"
                               className=" h-36 p-2  input  focus:outline-primary border-none w-full bg-base-200 font-['vazir']"
                               value={formik.values.address}
                               onChange={formik.handleChange}
