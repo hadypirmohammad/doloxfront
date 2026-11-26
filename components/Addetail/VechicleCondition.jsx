@@ -1,12 +1,16 @@
 import React from 'react'
 import { BackendURL } from '@/utils/URL';
 import Image from 'next/image';
+import { vehicleConditionLabel } from '@/utils/services/vehicleTypes';
 
 const VechicleCondition = (ad) => {
     const data= ad.ad
+    // عنوان بخش به صورت داینامیک بر اساس برند ریشه (HeadBrandId)
+    // ۵ = خودرو، ۶ = موتورسیکلت، ۷ = ماشین سنگین
+    const conditionLabel = vehicleConditionLabel(data?.HeadBrandId);
   return (
       <div className="bg-white rounded-[15px] w-full h-fit p-6 mt-2  max-w-screen-sm">
-          <h2 className="text-center pb-2">وضعیت خودرو</h2>
+          <h2 className="text-center pb-2">وضعیت {conditionLabel}</h2>
          
          <div className="grid grid-cols-2 justify-center w-fit gap-2 mx-auto">
             <div className="relative border rounded-[7px] flex justify-center items-center text-center h-[46px] w-[145px] border-black mt-6">

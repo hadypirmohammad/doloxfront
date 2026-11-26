@@ -144,22 +144,23 @@ export function convertToShamsiAndGregorian(dateString) {
 }
 
 export function mapToAdFormat(item) {
-   console.log(item.Brand)
     return {
-     
-       
-        BrandName : item.MainBrand,
+        // نام مدل (سطح ۳ درخت برند) — مثلا ۱۱۱
+        BrandName: item.Brand ?? item.BrandName ?? item.MainBrand ?? '',
+        // نام برند والد (سطح ۲ درخت برند) — مثلا پراید
+        // ParentBrandName از سمت سرور در آگهی‌های مشابه ارسال می‌شود
+        HeadBrandName: item.ParentBrandName ?? item.HeadBrandName ?? item.MainBrand ?? '',
         BrandIcon: item.BrandIcon,
         EnTitle: item.EnTitle,
         Title: item.Title,
-        CityName:  item.Location,
+        CityName: item.Location,
         CoverImage: item.CoverImage,
         Price: item.Price,
         IsAgreement: item.IsAgreement,
         isGest: item.IsGest,
         isRent: item.IsRent,
         Worked: item.Worked,
-        Year:  Number(item.Year),
+        Year: Number(item.Year),
         AdFeatures: [],
         Features: item.Features || []
     };

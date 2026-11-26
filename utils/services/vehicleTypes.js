@@ -45,3 +45,12 @@ export const VEHICLE_TYPES = {
 };
 
 export const vehicleTypeSet = (headBrandId) => VEHICLE_TYPES[headBrandId] || VEHICLE_TYPES[5];
+
+// برچسب «وضعیت» در صفحه آگهی بر اساس برند ریشه (HeadBrandId)
+// ۵ = خودرو، ۶ = موتورسیکلت، ۷ = ماشین سنگین
+export const vehicleConditionLabel = (headBrandId) => {
+  const id = Number(headBrandId);
+  if (id === 6) return 'موتورسیکلت';
+  if (id === 7) return 'ماشین سنگین';
+  return 'خودرو';
+};
