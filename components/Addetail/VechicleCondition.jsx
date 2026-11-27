@@ -3,10 +3,11 @@ import { BackendURL } from '@/utils/URL';
 import Image from 'next/image';
 
 const VechicleCondition = (ad) => {
-    const data= ad.ad
+    const data= ad.ad;
+    console.log("VechicleCondition: ",data);
   return (
       <div className="bg-white rounded-[15px] w-full h-fit p-6 mt-2  max-w-screen-sm">
-          <h2 className="text-center pb-2">وضعیت خودرو</h2>
+          <h2 className="text-center pb-2">وضعیت {data.HeadBrand === 'سواری' ? 'خودرو' : data.HeadBrand}</h2>
          
          <div className="grid grid-cols-2 justify-center w-fit gap-2 mx-auto">
             <div className="relative border rounded-[7px] flex justify-center items-center text-center h-[46px] w-[145px] border-black mt-6">

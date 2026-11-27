@@ -55,6 +55,8 @@ const AdsItem = ({ ad, brandIndex = {} }) => {
   const planId = Number(ad.PlanId) || 1;
   const isAllCities = planId === 2 || planId === 4;
   const isFeatured = planId === 3 || planId === 4;
+  console.log("HeadAd: ",ad.HeadBrandName);
+  console.log("brandNameAd: ",ad.BrandName);
   const parentName = ad.HeadBrandName;
   const brandName = ad.BrandName || ad.Brand?.ParentBrand?.Name || ad.Brand?.Name;
   const cityName = ad.CityName || ad.City?.CityName;

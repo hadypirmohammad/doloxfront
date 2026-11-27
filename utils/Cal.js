@@ -147,8 +147,8 @@ export function mapToAdFormat(item) {
    console.log(item.Brand)
     return {
      
-       
-        BrandName : item.MainBrand,
+        HeadBrandName: item.MainBrand,
+        BrandName : item.BrandName,
         BrandIcon: item.BrandIcon,
         EnTitle: item.EnTitle,
         Title: item.Title,

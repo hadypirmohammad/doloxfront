@@ -39,7 +39,7 @@ export async function getServerSideProps(context) {
 
 const AdDetail = ({ ad , token , EnTitle, notAvailable}) => {
     const mapped = (ad.Simulars || []).map(mapToAdFormat);
-    // console.log(mapped)
+    
 
     if (notAvailable) {
         return (
