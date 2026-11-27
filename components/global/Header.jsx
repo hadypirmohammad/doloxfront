@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 
 const navLinks = [
   { href: '/ads', label: 'خرید خودرو' },
+  { href: '/car-prices', label: 'قیمت خودرو' },
   { href: '/auctions', label: 'مزایده' },
   { href: '/khalafi', label: 'خلافی' },
   { href: '/autogallery', label: 'گالری ها' },
@@ -14,6 +15,7 @@ const navLinks = [
 
 const mobileNavLinks = [
   { href: '/ads', label: 'خرید خودرو' },
+  { href: '/car-prices', label: 'قیمت خودروها' },
   { href: '/auctions', label: 'مزایده ها' },
   { href: '/autogallery', label: 'گالری ها' },
   { href: '/khalafi', label: 'خلافی خودرو' },
